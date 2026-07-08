@@ -1,23 +1,42 @@
 {
   "expo": {
-    "name": "trakkit-mobile-rn",
+    "name": "TraKKiT",
     "slug": "trakkit-mobile-rn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "trakkitmobilern",
+    "scheme": "trakkit",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.trakkit.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "TraKKiT needs your location to verify check-ins and record field activity.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "TraKKiT tracks your location during active shifts for supervisor visibility.",
+        "NSCameraUsageDescription": "TraKKiT needs camera access for attendance selfies and field photos."
+      }
     },
     "android": {
+      "package": "com.trakkit.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#2563eb",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +52,29 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow TraKKiT to use your location during active shifts.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow TraKKiT to access your camera for attendance selfies."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      }
     }
   }
 }

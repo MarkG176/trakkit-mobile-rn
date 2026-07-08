@@ -1,56 +1,63 @@
-import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import '../global.css';
+import '@/tasks/backgroundLocation';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { View, ActivityIndicator } from 'react-native';
+import { AuthProvider, useAuth } from '@/providers/AuthProvider';
+import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
+import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
+import { queryClient } from '@/lib/queryClient';
+import { SyncStatusBar } from '@/components/SyncStatusBar';
+import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
+import { useUserRole } from '@/hooks/useUserRole';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const { isSupervisor, loading: roleLoading } = useUserRole();
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (loading || roleLoading) return;
+
+    const inAuth = segments[0] === '(auth)';
+
+    if (!user && !inAuth) {
+      router.replace('/(auth)/login');
+      return;
     }
-  }, [loaded]);
 
-  if (!loaded) {
-    return null;
+    if (user && inAuth) {
+      router.replace(isSupervisor ? '/(supervisor)' : '/(agent)');
+    }
+  }, [user, loading, roleLoading, isSupervisor, segments]);
+
+  if (loading || (user && roleLoading)) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
   }
 
-  return <RootLayoutNav />;
+  return <>{children}</>;
 }
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <WorkspaceProvider>
+          <AgentStatusProvider>
+            <SyncStatusBar />
+            <BackgroundLocationTracker />
+            <AuthGate>
+              <Slot />
+            </AuthGate>
+          </AgentStatusProvider>
+        </WorkspaceProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
