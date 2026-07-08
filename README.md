@@ -15,6 +15,23 @@ Native Android-first rebuild of the TraKKiT field sales PWA, using the same Supa
 2. `npm install`
 3. `npm run android`
 
+## Publish to GitHub
+
+This app lives in a **separate repo** from the PWA (`trakkit-mobile`):
+
+```
+c:\Users\USER\Documents\GitHub\trakkit-mobile-rn
+```
+
+To push to GitHub (after creating an empty repo on github.com):
+
+```powershell
+cd c:\Users\USER\Documents\GitHub\trakkit-mobile-rn
+git remote add origin https://github.com/YOUR_ORG/trakkit-mobile-rn.git
+git branch -M main
+git push -u origin main
+```
+
 ## Architecture
 
 - **Multi-workspace**: `WorkspaceProvider` + `workspaceService`
