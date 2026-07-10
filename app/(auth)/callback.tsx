@@ -1,30 +1,21 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { supabase } from '@/lib/supabase';
+import { createSessionFromUrl } from '@/utils/oauth';
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
 
   useEffect(() => {
     const handleUrl = async (url: string) => {
-      const hash = url.split('#')[1];
-      if (!hash) {
-        router.replace('/(auth)/login');
-        return;
-      }
-
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-
-      if (accessToken && refreshToken) {
-        await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-      } else {
+      try {
+        await createSessionFromUrl(url);
+      } catch (error) {
+        Alert.alert(
+          'Sign in failed',
+          error instanceof Error ? error.message : 'Could not complete Google sign-in.',
+        );
         router.replace('/(auth)/login');
       }
     };
@@ -35,7 +26,7 @@ export default function AuthCallbackScreen() {
 
     const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
     return () => sub.remove();
-  }, []);
+  }, [router]);
 
   return (
     <View className="flex-1 items-center justify-center bg-white">

@@ -55,5 +55,6 @@ Write-Host "  JAVA_HOME    = $(if (Test-Path $javaHome) { $javaHome } else { '(n
 Write-Host "  adb          = $adb"
 Write-Host ""
 Write-Host "Close and reopen your terminal, then run:"
-Write-Host "  npx expo run:android"
+Write-Host "  npm run start:android    # USB device + Metro (localhost)"
+Write-Host "  npm run android:usb      # build, install, and launch on device"
 Write-Host ""

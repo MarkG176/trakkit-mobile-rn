@@ -105,9 +105,39 @@ class WorkspaceService {
     this.initialized = true;
   }
 
+  private async getDefaultWorkspaceId(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_default_workspace');
+      if (error || !data) return null;
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  private pickFirstNonDefaultWorkspaceId(defaultWorkspaceId: string | null): string | null {
+    if (this.userWorkspaces.length === 0) return null;
+
+    const firstNonDefault = this.userWorkspaces.find(
+      (workspace) => workspace.workspace_id && workspace.workspace_id !== defaultWorkspaceId,
+    );
+
+    return firstNonDefault?.workspace_id ?? this.userWorkspaces[0].workspace_id ?? null;
+  }
+
+  private async applyPreferredWorkspace(defaultWorkspaceId: string | null): Promise<void> {
+    const preferredWorkspaceId = this.pickFirstNonDefaultWorkspaceId(defaultWorkspaceId);
+    this.currentWorkspaceId = preferredWorkspaceId;
+    await this.saveWorkspaceId(preferredWorkspaceId);
+
+    if (this.currentWorkspaceId) {
+      await this.loadCurrentWorkspaceLabel();
+      await this.loadProjectsForWorkspace(this.currentWorkspaceId);
+    }
+  }
+
   async loadUserWorkspaces(): Promise<void> {
     if (!this.user) return;
-    const previousWorkspaceId = this.currentWorkspaceId;
 
     try {
       const { data, error } = await supabase
@@ -149,18 +179,8 @@ class WorkspaceService {
         active_components: (item as { active_components?: Record<string, boolean | string> | null }).active_components ?? null,
       }));
 
-      if (previousWorkspaceId && this.userWorkspaces.some((w) => w.workspace_id === previousWorkspaceId)) {
-        this.currentWorkspaceId = previousWorkspaceId;
-        await this.loadCurrentWorkspaceLabel();
-        if (this.currentWorkspaceId) await this.loadProjectsForWorkspace(this.currentWorkspaceId);
-      } else if (!this.currentWorkspaceId && this.userWorkspaces.length > 0) {
-        this.currentWorkspaceId = this.userWorkspaces[0].workspace_id;
-        await this.loadCurrentWorkspaceLabel();
-        if (this.currentWorkspaceId) await this.loadProjectsForWorkspace(this.currentWorkspaceId);
-      } else if (this.currentWorkspaceId && this.userWorkspaces.length > 0) {
-        await this.loadCurrentWorkspaceLabel();
-        await this.loadProjectsForWorkspace(this.currentWorkspaceId);
-      }
+      const defaultWorkspaceId = await this.getDefaultWorkspaceId();
+      await this.applyPreferredWorkspace(defaultWorkspaceId);
     } catch (error) {
       console.error('Error loading user workspaces:', error);
       this.userWorkspaces = [];

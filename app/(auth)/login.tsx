@@ -14,11 +14,24 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 
 export default function LoginScreen() {
-  const { signInWithOtp, verifyOtp } = useAuth();
+  const { signInWithOtp, signInWithGoogle, verifyOtp } = useAuth();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        Alert.alert('Google sign in failed', error.message);
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSendOtp = async () => {
     if (!email.trim()) {
@@ -88,12 +101,33 @@ export default function LoginScreen() {
             <TouchableOpacity
               className="rounded-xl bg-blue-600 py-4"
               onPress={handleSendOtp}
-              disabled={loading}
+              disabled={loading || googleLoading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text className="text-center font-semibold text-white">Send login code</Text>
+              )}
+            </TouchableOpacity>
+
+            <View className="my-6 flex-row items-center">
+              <View className="h-px flex-1 bg-slate-200" />
+              <Text className="mx-3 text-xs uppercase text-slate-400">Or continue with</Text>
+              <View className="h-px flex-1 bg-slate-200" />
+            </View>
+
+            <TouchableOpacity
+              className="flex-row items-center justify-center rounded-xl border border-slate-300 bg-white py-4"
+              onPress={handleGoogleSignIn}
+              disabled={loading || googleLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color="#2563eb" />
+              ) : (
+                <>
+                  <Text className="mr-2 text-lg font-bold text-blue-600">G</Text>
+                  <Text className="font-semibold text-slate-800">Sign in with Google</Text>
+                </>
               )}
             </TouchableOpacity>
           </>
