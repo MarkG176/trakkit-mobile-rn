@@ -4,64 +4,19 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { ComponentGate } from '@/components/ComponentGate';
-import { AppText, Card, LoadingSpinner, ProgressBar } from '@/components/ui';
+import { AppText, Card } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
-const DAILY_TARGET_HOURS = 8;
-
-function formatHours(hours: number): string {
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  if (wholeHours === 0) return `${minutes}m`;
-  if (minutes === 0) return `${wholeHours}h`;
-  return `${wholeHours}h ${minutes}m`;
-}
-
-function calculateTodayHours(
-  logs: { status: string | null; timestamp: string | null; created_at: string | null }[],
-): number {
-  if (!logs.length) return 0;
-
-  let totalMinutes = 0;
-  let currentCheckIn: (typeof logs)[number] | null = null;
-
-  for (const log of logs) {
-    if (log.status === 'checked_in' && !currentCheckIn) {
-      currentCheckIn = log;
-    } else if ((log.status === 'lunch' || log.status === 'checked_out') && currentCheckIn) {
-      const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
-      const end = new Date(log.timestamp ?? log.created_at ?? '').getTime();
-      totalMinutes += Math.max(0, (end - start) / 60000);
-      currentCheckIn = null;
-    }
-  }
-
-  if (currentCheckIn) {
-    const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
-    totalMinutes += Math.max(0, (Date.now() - start) / 60000);
-  }
-
-  return totalMinutes / 60;
-}
-
-interface WorkHoursCardProps {
-  compact?: boolean;
-}
-
-export function WorkHoursCard({ compact = false }: WorkHoursCardProps) {
+export function WorkHoursCard() {
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
   const [todayHours, setTodayHours] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<string>('unknown');
 
   useEffect(() => {
     const load = async () => {
-      if (!user || !currentWorkspaceId) {
-        setLoading(false);
-        return;
-      }
+      if (!user || !currentWorkspaceId) return;
 
-      setLoading(true);
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
@@ -73,39 +28,29 @@ export function WorkHoursCard({ compact = false }: WorkHoursCardProps) {
         .gte('timestamp', startOfDay.toISOString())
         .order('timestamp', { ascending: true });
 
-      setTodayHours(calculateTodayHours(data ?? []));
-      setLoading(false);
+      if (data?.length) {
+        setStatus(data[data.length - 1].status ?? 'unknown');
+        const checkIns = data.filter((d) => d.status === 'checked_in');
+        if (checkIns.length > 0) {
+          const first = new Date(checkIns[0].timestamp ?? checkIns[0].created_at ?? '').getTime();
+          const last = new Date(data[data.length - 1].timestamp ?? data[data.length - 1].created_at ?? '').getTime();
+          setTodayHours(Math.max(0, (last - first) / (1000 * 60 * 60)));
+        }
+      }
     };
 
     load();
   }, [user?.id, currentWorkspaceId]);
 
-  const progress = Math.min(1, todayHours / DAILY_TARGET_HOURS);
-
   return (
     <ComponentGate code="CRM-0053">
-      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: compact ? spacing.md : 0 }}>
-        <Card style={compact ? { paddingVertical: spacing.md } : undefined}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-            <AppText style={{ fontWeight: '500', flexShrink: 1 }}>Work Hours Today</AppText>
-            {loading ? null : (
-              <AppText variant="secondary" style={{ fontWeight: '600', color: colors.primary }}>
-                {formatHours(todayHours)}
-              </AppText>
-            )}
-          </View>
-          {loading ? (
-            <LoadingSpinner label="Loading hours" />
-          ) : (
-            <>
-              <ProgressBar value={progress} style={{ marginBottom: spacing.xs }} />
-              <AppText variant="secondary" style={{ flexShrink: 1 }}>
-                Target: {DAILY_TARGET_HOURS} hours ({Math.round(progress * 100)}%)
-              </AppText>
-            </>
-          )}
-        </Card>
-      </View>
+      <Card>
+        <AppText style={{ marginBottom: spacing.sm, fontWeight: '500' }}>Work Hours Today</AppText>
+        <AppText variant="h2" style={{ color: colors.primary }}>{todayHours.toFixed(1)}h</AppText>
+        <AppText variant="secondary" style={{ marginTop: 4, textTransform: 'capitalize' }}>
+          Status: {status.replace('_', ' ')}
+        </AppText>
+      </Card>
     </ComponentGate>
   );
 }

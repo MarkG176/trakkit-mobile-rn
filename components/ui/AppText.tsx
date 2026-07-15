@@ -8,10 +8,5 @@ interface AppTextProps extends TextProps {
 }
 
 export function AppText({ variant = 'body', style, ...props }: AppTextProps) {
-  return (
-    <RNText
-      style={[text[variant], { flexShrink: 1 }, style as TextStyle]}
-      {...props}
-    />
-  );
+  return <RNText style={[text[variant], style as TextStyle]} {...props} />;
 }
