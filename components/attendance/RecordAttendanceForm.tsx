@@ -4,12 +4,8 @@ import {
   Alert,
   ActivityIndicator,
   Image,
-  Pressable,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
@@ -19,58 +15,43 @@ import { getCurrentLocation } from '@/utils/location';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
 import { getLastCheckInPhotoUrl, uploadCheckInPhoto } from '@/utils/agentPhotos';
-import { AppText, Button, Card, IconButton } from '@/components/ui';
+import { AppText, Button, Card } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
+import type { IoniconName } from '@/components/navigation/TabIcon';
 
-interface AttendanceProfile {
-  displayName: string;
-  teamName: string;
-  teamLabel: string;
-  checkInTime: string | null;
-  checkOutTime: string | null;
-  breakLabel: string | null;
-  photoUrl: string | null;
-}
-
-function formatClockTime(iso: string | null): string | null {
-  if (!iso) return null;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  return format(date, 'h:mm a');
-}
-
-function formatBreakRange(start: string, end: string | null): string {
-  const startDate = new Date(start);
-  if (!end) return format(startDate, 'h:mm a');
-  const endDate = new Date(end);
-  const startMeridiem = format(startDate, 'a');
-  const endMeridiem = format(endDate, 'a');
-  if (startMeridiem === endMeridiem) {
-    return `${format(startDate, 'h:mm')}ΓÇô${format(endDate, 'h:mm a')}`;
-  }
-  return `${format(startDate, 'h:mm a')}ΓÇô${format(endDate, 'h:mm a')}`;
-}
-
-function StatusItem({
-  icon,
-  iconColor,
-  label,
-}: {
-  icon: string;
-  iconColor: string;
-  label: string;
-  muted?: boolean;
-}) {
+function InfoRow({ icon, label }: { icon: IoniconName; label: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-      <AppText style={{ color: iconColor, fontSize: 15 }}>{icon}</AppText>
-      <AppText variant="secondary" style={{ fontSize: 13 }}>{label}</AppText>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
+      <Ionicons name={icon} size={16} color={colors.secondaryForeground} />
+      <AppText variant="secondary" style={{ flex: 1, flexShrink: 1 }}>
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
+function StatusBadge({ isCheckedIn }: { isCheckedIn: boolean }) {
+  const label = isCheckedIn ? 'CHECKED IN' : 'CHECKED OUT';
+  const backgroundColor = isCheckedIn ? '#E8F5E9' : '#FDE8E8';
+  const textColor = isCheckedIn ? '#2E7D32' : '#C62828';
+
+  return (
+    <View
+      style={{
+        backgroundColor,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 4,
+        borderRadius: radius.sm,
+      }}
+    >
+      <AppText style={{ fontSize: 10, fontWeight: '700', color: textColor, letterSpacing: 0.5 }}>
+        {label}
+      </AppText>
     </View>
   );
 }
 
 export function RecordAttendanceForm() {
-  const router = useRouter();
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
   const { isCheckedIn, refresh } = useAgentStatus();
@@ -78,106 +59,29 @@ export function RecordAttendanceForm() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [showCamera, setShowCamera] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<'checked_in' | 'checked_out' | null>(null);
-  const [profile, setProfile] = useState<AttendanceProfile>({
-    displayName: 'Agent',
-    teamName: 'Team',
-    teamLabel: 'Field Team',
-    checkInTime: null,
-    checkOutTime: null,
-    breakLabel: null,
-    photoUrl: null,
-  });
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
-  const loadProfile = useCallback(async () => {
-    if (!user || !currentWorkspaceId) {
+  const loadPhoto = useCallback(async () => {
+    if (!user) {
       setProfileLoading(false);
       return;
     }
-
     setProfileLoading(true);
     try {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const today = startOfDay.toISOString().split('T')[0];
-
-      const [roleRes, teamRes, statusRes, breakRes, photoUrl] = await Promise.all([
-        supabase
-          .from('user_roles')
-          .select('display_name, first_name, last_name, role_title')
-          .eq('user_id', user.id)
-          .eq('workspace_id', currentWorkspaceId)
-          .maybeSingle(),
-        supabase
-          .from('team_members')
-          .select('teams(name)')
-          .eq('agent_id', user.id)
-          .eq('workspace_id', currentWorkspaceId)
-          .eq('is_active', true)
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('agent_status_log')
-          .select('status, timestamp, created_at')
-          .eq('agent_id', user.id)
-          .eq('workspace_id', currentWorkspaceId)
-          .gte('timestamp', startOfDay.toISOString())
-          .order('timestamp', { ascending: true }),
-        supabase
-          .from('agent_work_segments')
-          .select('segment_start, segment_end')
-          .eq('agent_id', user.id)
-          .eq('workspace_id', currentWorkspaceId)
-          .eq('work_date', today)
-          .eq('segment_type', 'break')
-          .order('segment_start', { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-        getLastCheckInPhotoUrl(user.id),
-      ]);
-
-      const role = roleRes.data;
-      const displayName =
-        role?.display_name?.trim() ||
-        [role?.first_name, role?.last_name].filter(Boolean).join(' ').trim() ||
-        user.email?.split('@')[0] ||
-        'Agent';
-
-      const teamName = teamRes.data?.teams?.name ?? 'Team';
-      const teamLabel = role?.role_title?.trim() || teamName || 'Field Team';
-
-      const logs = statusRes.data ?? [];
-      const firstCheckIn = logs.find((entry) => entry.status === 'checked_in');
-      const lastCheckOut = [...logs].reverse().find((entry) => entry.status === 'checked_out');
-
-      const checkInIso = firstCheckIn?.timestamp ?? firstCheckIn?.created_at ?? null;
-      const checkOutIso = lastCheckOut?.timestamp ?? lastCheckOut?.created_at ?? null;
-
-      const breakSegment = breakRes.data;
-      const breakLabel = breakSegment
-        ? formatBreakRange(breakSegment.segment_start, breakSegment.segment_end)
-        : null;
-
-      setProfile({
-        displayName,
-        teamName,
-        teamLabel,
-        checkInTime: formatClockTime(checkInIso),
-        checkOutTime: formatClockTime(checkOutIso),
-        breakLabel,
-        photoUrl,
-      });
+      const url = await getLastCheckInPhotoUrl(user.id);
+      setPhotoUrl(url);
     } catch (error) {
-      console.error('Error loading attendance profile:', error);
+      console.error('Error loading check-in photo:', error);
     } finally {
       setProfileLoading(false);
     }
-  }, [user, currentWorkspaceId]);
+  }, [user]);
 
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile, isCheckedIn]);
+    loadPhoto();
+  }, [loadPhoto, isCheckedIn]);
 
-  const handleAvatarPress = () => {
+  const beginCapture = () => {
     if (loading) return;
     setPendingStatus(isCheckedIn ? 'checked_out' : 'checked_in');
     setShowCamera(true);
@@ -190,7 +94,7 @@ export function RecordAttendanceForm() {
 
     try {
       const location = await getCurrentLocation();
-      const photoUrl = await uploadCheckInPhoto(uri, user.id);
+      const uploaded = await uploadCheckInPhoto(uri, user.id);
 
       const payload = {
         agent_id: user.id,
@@ -198,7 +102,7 @@ export function RecordAttendanceForm() {
         status: pendingStatus,
         location_lat: location.latitude,
         location_lng: location.longitude,
-        selfie_url: photoUrl,
+        selfie_url: uploaded,
         timestamp: new Date().toISOString(),
       };
 
@@ -216,7 +120,7 @@ export function RecordAttendanceForm() {
       }
 
       await refresh();
-      await loadProfile();
+      await loadPhoto();
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Check-in failed');
     } finally {
@@ -229,7 +133,7 @@ export function RecordAttendanceForm() {
     return (
       <ComponentGate code="CRM-0026">
         <Card>
-          <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing.md }}>
+          <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing.md, flexShrink: 1 }}>
             Take a selfie to {pendingStatus === 'checked_in' ? 'check in' : 'check out'}
           </AppText>
           <CameraCapture onCapture={handleCapture} label="Capture selfie" />
@@ -241,119 +145,97 @@ export function RecordAttendanceForm() {
     );
   }
 
-  const checkInLabel = profile.checkInTime ? `Checked in ${profile.checkInTime}` : 'Not checked in';
-  const checkOutLabel = profile.checkOutTime
-    ? `Checked out ${profile.checkOutTime}`
-    : isCheckedIn
-      ? 'Still checked in'
-      : 'Not checked out';
+  const actionLabel = isCheckedIn ? 'Check Out Now' : 'Check In Now';
+  const actionIcon = isCheckedIn ? 'log-out-outline' : 'log-in-outline';
 
   return (
     <ComponentGate code="CRM-0026">
-      <Card style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing['2xl'] }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: spacing['3xl'],
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <AppText style={{ fontWeight: '500' }}>{profile.teamName}</AppText>
-            <Ionicons name="chevron-down" size={16} color={colors.secondaryForeground} />
+      <Card style={{ padding: spacing.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.xs }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+            <Ionicons name="time-outline" size={22} color={colors.primary} />
+            <AppText variant="h3" style={{ fontWeight: '700', flexShrink: 1 }}>
+              Attendance
+            </AppText>
           </View>
-          <IconButton
-            accessibilityLabel="Menu"
-            onPress={() => router.push('/(agent)/more')}
-            style={{ backgroundColor: 'transparent' }}
-          >
-            <Ionicons name="menu" size={20} color={colors.foreground} />
-          </IconButton>
+          <StatusBadge isCheckedIn={isCheckedIn} />
         </View>
 
-        <View style={{ alignItems: 'center' }}>
-          <Pressable
-            accessibilityLabel={isCheckedIn ? 'Check out' : 'Check in'}
-            accessibilityHint="Opens camera to capture a selfie"
-            style={{ marginBottom: spacing.xl }}
-            disabled={loading}
-            onPress={handleAvatarPress}
+        <AppText variant="secondary" style={{ marginBottom: spacing.lg, flexShrink: 1 }}>
+          Update your current status
+        </AppText>
+
+        <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+          <View
+            style={{
+              padding: 5,
+              borderRadius: radius.full,
+              borderWidth: 2,
+              borderColor: colors.border,
+              backgroundColor: colors.background,
+            }}
           >
             <View
               style={{
-                width: 108,
-                height: 108,
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
+                padding: 4,
                 borderRadius: radius.full,
-                backgroundColor: colors.accent,
+                borderWidth: 1,
+                borderColor: '#E8ECEF',
+                backgroundColor: colors.card,
               }}
             >
-              {profile.photoUrl ? (
-                <Image source={{ uri: profile.photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-              ) : (
-                <Ionicons name="person" size={32} color={colors.secondaryForeground} />
-              )}
-              {loading ? (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                  }}
-                >
-                  <ActivityIndicator color={colors.primaryForeground} />
-                </View>
-              ) : null}
+              <View
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: radius.full,
+                  overflow: 'hidden',
+                  backgroundColor: colors.accent,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {profileLoading ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : photoUrl ? (
+                  <Image source={{ uri: photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                ) : (
+                  <Ionicons name="person" size={40} color={colors.secondaryForeground} />
+                )}
+                {loading ? (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    <ActivityIndicator color={colors.primaryForeground} />
+                  </View>
+                ) : null}
+              </View>
             </View>
-          </Pressable>
-
-          {profileLoading ? (
-            <ActivityIndicator color={colors.primary} style={{ marginBottom: spacing['2xl'] }} />
-          ) : (
-            <>
-              <AppText variant="h2" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
-                {profile.displayName}
-              </AppText>
-              <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing['2xl'] }}>
-                {profile.teamLabel}
-              </AppText>
-            </>
-          )}
-
-          <View style={{ height: 1, width: '100%', backgroundColor: colors.border, marginBottom: spacing.xl }} />
-
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing.sm,
-            }}
-          >
-            <StatusItem icon="↪" iconColor={colors.success} label={checkInLabel} />
-            {profile.breakLabel ? (
-              <>
-                <AppText style={{ color: colors.border }}>·</AppText>
-                <StatusItem icon="☕" iconColor={colors.warning} label={`Break ${profile.breakLabel}`} />
-              </>
-            ) : null}
-            <AppText style={{ color: colors.border }}>·</AppText>
-            <StatusItem icon="↩" iconColor={colors.secondaryForeground} label={checkOutLabel} />
           </View>
-
-          <AppText variant="secondary" style={{ marginTop: spacing.lg, textAlign: 'center' }}>
-            Tap photo to {isCheckedIn ? 'check out' : 'check in'}
-          </AppText>
         </View>
+
+        <InfoRow icon="shield-checkmark-outline" label="Selfie verification required" />
+        <InfoRow icon="location-outline" label="Location captured automatically" />
+
+        <Button
+          variant="primary"
+          size="lg"
+          loading={loading}
+          onPress={beginCapture}
+          icon={<Ionicons name={actionIcon} size={18} color={colors.primaryForeground} />}
+          style={{ marginTop: spacing.md, width: '100%' }}
+        >
+          {actionLabel}
+        </Button>
       </Card>
     </ComponentGate>
   );
