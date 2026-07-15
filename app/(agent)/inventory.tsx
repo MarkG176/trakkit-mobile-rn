@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import {
   Screen,
-  PageHeader,
   LoadingSpinner,
   EmptyMessage,
-  ListItemCard,
   AppText,
 } from '@/components/ui';
-import { colors } from '@/theme';
+import { colors, spacing } from '@/theme';
+
+function stockColor(amount: number): string {
+  if (amount < 5) return colors.destructive;
+  if (amount < 10) return colors.warning;
+  return colors.success;
+}
 
 export default function InventoryScreen() {
   const { user } = useAuth();
@@ -33,19 +39,59 @@ export default function InventoryScreen() {
 
   return (
     <ComponentGate code="CRM-0093" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Inventory" />
+      <Screen scroll title="Inventory" subtitle="Your assigned products">
         {loading ? (
           <LoadingSpinner />
         ) : items.length === 0 ? (
-          <EmptyMessage>No assigned stock.</EmptyMessage>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
+            <Ionicons name="cube-outline" size={48} color={colors.mutedForeground} />
+            <AppText variant="secondary" style={{ marginTop: spacing.md, textAlign: 'center' }}>
+              No assigned stock.
+            </AppText>
+          </View>
         ) : (
           items.map((item) => (
-            <ListItemCard
+            <View
               key={item.id}
-              title={item.name ?? 'Product'}
-              trailing={<AppText style={{ fontWeight: '700', color: colors.primary }}>×{item.amount_issued}</AppText>}
-            />
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.card,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 8,
+                padding: spacing.md,
+                marginBottom: spacing.sm,
+                shadowColor: '#000',
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                shadowOffset: { width: 0, height: 1 },
+                elevation: 2,
+              }}
+            >
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 8,
+                  backgroundColor: colors.primaryLight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: spacing.md,
+                }}
+              >
+                <Ionicons name="cube" size={24} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={{ fontSize: 18, fontWeight: '500' }}>{item.name ?? 'Product'}</AppText>
+                <AppText variant="secondary" style={{ marginTop: 4 }}>
+                  Stock:{' '}
+                  <AppText style={{ fontWeight: '600', color: stockColor(item.amount_issued) }}>
+                    {item.amount_issued}
+                  </AppText>
+                </AppText>
+              </View>
+            </View>
           ))
         )}
       </Screen>

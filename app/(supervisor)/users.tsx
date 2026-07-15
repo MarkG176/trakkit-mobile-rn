@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
 
 export default function UsersScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -25,8 +25,7 @@ export default function UsersScreen() {
 
   return (
     <ComponentGate code="CRM-0123">
-      <Screen scroll>
-        <PageHeader title="Users" />
+      <Screen scroll title="Users">
         {loading ? (
           <LoadingSpinner />
         ) : (

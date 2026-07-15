@@ -6,7 +6,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { Screen, PageHeader, Button, ChipSelect } from '@/components/ui';
+import { Screen, Button, ChipSelect } from '@/components/ui';
 
 const INTERACTION_TYPES = ['note', 'photo', 'call', 'visit', 'survey', 'sale', 'rejected', 'not_answered'];
 
@@ -46,8 +46,7 @@ export default function LogInteractionScreen() {
 
   return (
     <ComponentGate code="CRM-0096" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Log Interaction" />
+      <Screen scroll title="Log Interaction" showBack>
         <ChipSelect
           label="Type"
           value={interactionType}

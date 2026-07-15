@@ -4,7 +4,7 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { formatCurrencySimple } from '@/utils/currency';
 import { workspaceService } from '@/services/workspaceService';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
 import { colors } from '@/theme';
 
 export default function SalesScreen() {
@@ -30,8 +30,7 @@ export default function SalesScreen() {
 
   return (
     <ComponentGate code="CRM-0121">
-      <Screen scroll>
-        <PageHeader title="Sales" />
+      <Screen scroll title="Sales & Giveaways">
         {loading ? (
           <LoadingSpinner />
         ) : (

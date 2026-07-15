@@ -7,3 +7,4 @@ export { Screen, SectionHeader } from './Screen';
 export { IconButton } from './IconButton';
 export { PageHeader, LoadingSpinner, EmptyMessage, CenteredScreen } from './PageLayout';
 export { ListItemCard, ChipSelect, SelectCard } from './ListPatterns';
+export { ProgressBar } from './ProgressBar';

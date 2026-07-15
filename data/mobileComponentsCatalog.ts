@@ -38,7 +38,7 @@ export const MOBILE_COMPONENTS: MobileComponent[] = [
   { code: 'CRM-0093', name: 'Inventory', path: 'inventory', group: 'agent-page', description: 'Assigned stock items the agent carries.' },
   { code: 'CRM-0094', name: 'Record Sale Page', path: 'record-sale', group: 'agent-page', description: 'Full-page sale recording flow.' },
   { code: 'CRM-0095', name: 'Give Products Page', path: 'give-products', group: 'agent-page', description: 'Full-page giveaway recording flow.' },
-  { code: 'CRM-0098', name: 'Routes', path: 'routes', group: 'agent-page', description: 'Planned route and stops for the day.' },
+  { code: 'CRM-0098', name: 'Stores', path: 'routes', group: 'agent-page', description: 'Today\'s assigned stores and store visits.' },
   { code: 'CRM-0099', name: 'Reports', path: 'reports', group: 'agent-page', description: 'Reports the agent has submitted or needs to submit.' },
   { code: 'CRM-0100', name: 'More', path: 'more', group: 'agent-page', description: 'Overflow menu of less common pages.' },
   { code: 'CRM-0101', name: 'Settings', path: 'settings', group: 'agent-page', description: 'Mobile app settings.' },

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
 import { colors } from '@/theme';
 
 export default function StatsScreen() {
@@ -39,8 +39,7 @@ export default function StatsScreen() {
 
   return (
     <ComponentGate code="CRM-0124">
-      <Screen scroll>
-        <PageHeader title="Stats — Today" />
+      <Screen scroll title="Stats">
         {loading ? (
           <LoadingSpinner />
         ) : (

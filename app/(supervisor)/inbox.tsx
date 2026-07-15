@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components/ui';
+import { Screen, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components/ui';
 
 export default function InboxScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -27,8 +27,7 @@ export default function InboxScreen() {
 
   return (
     <ComponentGate code="CRM-0126">
-      <Screen scroll>
-        <PageHeader title="Inbox" />
+      <Screen scroll title="Inbox">
         {loading ? (
           <LoadingSpinner />
         ) : messages.length === 0 ? (

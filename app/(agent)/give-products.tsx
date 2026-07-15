@@ -6,7 +6,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { Screen, PageHeader, Button } from '@/components/ui';
+import { Screen, Button } from '@/components/ui';
 
 export default function GiveProductsScreen() {
   const { user } = useAuth();
@@ -48,8 +48,7 @@ export default function GiveProductsScreen() {
 
   return (
     <ComponentGate code="CRM-0095" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Give Products" />
+      <Screen scroll title="Give Products" showBack>
         <FormField label="Recipient name" value={recipientName} onChangeText={setRecipientName} />
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />

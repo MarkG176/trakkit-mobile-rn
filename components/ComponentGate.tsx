@@ -4,7 +4,6 @@ import { ActivityIndicator, View } from 'react-native';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { workspaceService } from '@/services/workspaceService';
-import { mergeWithDefaults } from '@/data/mobileComponentsCatalog';
 import { colors } from '@/theme';
 
 interface ComponentGateProps {
@@ -34,9 +33,7 @@ export function ComponentGate({
     );
   }
 
-  const componentEnabled = componentsReady
-    ? isEnabled(code)
-    : (mergeWithDefaults(workspaceService.getCurrentActiveComponents())[code] ?? true);
+  const componentEnabled = isEnabled(code);
 
   if (!componentEnabled) {
     if (redirectTo) return <Redirect href={redirectTo as never} />;

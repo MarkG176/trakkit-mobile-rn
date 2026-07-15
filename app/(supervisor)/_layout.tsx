@@ -1,10 +1,14 @@
+import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
-import { LayoutDashboard, Users, Map, Inbox, BarChart3 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useUserRole } from '@/hooks/useUserRole';
-import { tabBarIcon, tabScreenOptions } from '@/components/navigation/TabIcon';
+import { tabBarIcon, getTabScreenOptions } from '@/components/navigation/TabIcon';
+import { TopBar } from '@/components/dashboard/TopBar';
+import { colors } from '@/theme';
 
 export default function SupervisorLayout() {
+  const insets = useSafeAreaInsets();
   const { isEnabled, isLoaded } = useProjectComponents();
   const { isSupervisor, loading } = useUserRole();
 
@@ -14,16 +18,21 @@ export default function SupervisorLayout() {
   const show = (code: string) => !isLoaded || isEnabled(code);
 
   return (
-    <Tabs screenOptions={tabScreenOptions}>
-      <Tabs.Screen name="index" options={{ title: 'Dashboard', tabBarIcon: tabBarIcon(LayoutDashboard) }} />
-      <Tabs.Screen name="users" options={{ title: 'Users', href: show('CRM-0123') ? undefined : null, tabBarIcon: tabBarIcon(Users) }} />
-      <Tabs.Screen name="map" options={{ title: 'Map', href: show('CRM-0125') ? undefined : null, tabBarIcon: tabBarIcon(Map) }} />
-      <Tabs.Screen name="inbox" options={{ title: 'Inbox', href: show('CRM-0126') ? undefined : null, tabBarIcon: tabBarIcon(Inbox) }} />
-      <Tabs.Screen name="stats" options={{ title: 'Stats', href: show('CRM-0124') ? undefined : null, tabBarIcon: tabBarIcon(BarChart3) }} />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <TopBar />
+      <View style={{ flex: 1 }}>
+        <Tabs screenOptions={getTabScreenOptions(insets.bottom)}>
+      <Tabs.Screen name="index" options={{ title: 'Dashboard', tabBarIcon: tabBarIcon('home') }} />
+      <Tabs.Screen name="users" options={{ title: 'Users', href: show('CRM-0123') ? undefined : null, tabBarIcon: tabBarIcon('people') }} />
+      <Tabs.Screen name="map" options={{ title: 'Map', href: show('CRM-0125') ? undefined : null, tabBarIcon: tabBarIcon('location') }} />
+      <Tabs.Screen name="inbox" options={{ title: 'Inbox', href: show('CRM-0126') ? undefined : null, tabBarIcon: tabBarIcon('mail') }} />
+      <Tabs.Screen name="stats" options={{ title: 'Stats', href: show('CRM-0124') ? undefined : null, tabBarIcon: tabBarIcon('bar-chart') }} />
       <Tabs.Screen name="sales" options={{ href: null }} />
       <Tabs.Screen name="gallery" options={{ href: null }} />
       <Tabs.Screen name="rankings" options={{ href: null }} />
       <Tabs.Screen name="feedback" options={{ href: null }} />
-    </Tabs>
+        </Tabs>
+      </View>
+    </View>
   );
 }

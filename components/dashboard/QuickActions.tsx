@@ -1,17 +1,18 @@
 import { View } from 'react-native';
-import { ClipboardList, ShoppingCart, Gift, MessageSquare } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { ComponentGate } from '@/components/ComponentGate';
 import { Button, SectionHeader } from '@/components/ui';
 import { spacing, colors } from '@/theme';
+import type { IoniconName } from '@/components/navigation/TabIcon';
 
-const ACTIONS = [
-  { code: 'CRM-0097', label: 'Start Survey', path: '/(agent)/surveys' as const, Icon: ClipboardList },
-  { code: 'CRM-0034', label: 'Record Sale', path: '/(agent)/record-sale' as const, Icon: ShoppingCart },
-  { code: 'CRM-0034G', label: 'Give Products', path: '/(agent)/give-products' as const, Icon: Gift },
-  { code: 'CRM-0096', label: 'Log Interaction', path: '/(agent)/log-interaction' as const, Icon: MessageSquare },
-] as const;
+const ACTIONS: { code: string; label: string; path: `/(agent)/${string}`; icon: IoniconName }[] = [
+  { code: 'CRM-0097', label: 'Start Survey', path: '/(agent)/surveys', icon: 'clipboard' },
+  { code: 'CRM-0034', label: 'Record Sale', path: '/(agent)/record-sale', icon: 'cart' },
+  { code: 'CRM-0034G', label: 'Give Products', path: '/(agent)/give-products', icon: 'gift' },
+  { code: 'CRM-0096', label: 'Log Interaction', path: '/(agent)/log-interaction', icon: 'chatbox' },
+];
 
 export function QuickActions() {
   const router = useRouter();
@@ -24,14 +25,14 @@ export function QuickActions() {
     <ComponentGate code="CRM-0051">
       <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
         <SectionHeader title="Quick Actions" />
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {actions.map((action) => (
             <Button
               key={action.code}
               variant="tile"
               style={{ minWidth: '45%', flex: 1 }}
-              onPress={() => router.push(action.path)}
-              icon={<action.Icon size={20} color={colors.primaryForeground} />}
+              onPress={() => router.push(action.path as never)}
+              icon={<Ionicons name={action.icon} size={20} color={colors.primaryForeground} />}
             >
               {action.label}
             </Button>

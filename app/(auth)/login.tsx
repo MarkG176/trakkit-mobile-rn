@@ -6,13 +6,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
-import { AppText, Button, Input } from '@/components/ui';
+import { AppText, Button, Input, Card } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const { signInWithOtp, signInWithGoogle, verifyOtp } = useAuth();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -24,9 +28,7 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     try {
       const { error } = await signInWithGoogle();
-      if (error) {
-        Alert.alert('Google sign in failed', error.message);
-      }
+      if (error) Alert.alert('Google sign in failed', error.message);
     } finally {
       setGoogleLoading(false);
     }
@@ -54,7 +56,6 @@ export default function LoginScreen() {
         Alert.alert('Sign in failed', error.message);
       } else {
         setOtpSent(true);
-        Alert.alert('Code sent', 'Check your email for the 6-digit code.');
       }
     } finally {
       setLoading(false);
@@ -85,78 +86,118 @@ export default function LoginScreen() {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: 'center',
-          paddingHorizontal: spacing['2xl'],
-          paddingVertical: spacing['3xl'],
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.lg,
+          paddingBottom: spacing.lg + insets.bottom,
         }}
+        showsVerticalScrollIndicator={false}
       >
-        <AppText variant="h1" style={{ textAlign: 'center', marginBottom: spacing.sm }}>
-          TraKKiT
-        </AppText>
-        <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing['3xl'] }}>
-          Field sales & merchandising
-        </AppText>
+        <View style={{ width: '100%', maxWidth: 448, alignSelf: 'center' }}>
+          <Card style={{ padding: spacing.lg }}>
+            {!otpSent ? (
+              <>
+                <Image
+                  source={require('../../assets/images/icon.png')}
+                  style={{ width: 96, height: 96, alignSelf: 'center', marginBottom: spacing.md }}
+                  resizeMode="contain"
+                />
+                <AppText variant="h2" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
+                  Welcome back
+                </AppText>
+                <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
+                  Sign in with your work email to continue
+                </AppText>
 
-        {!otpSent ? (
-          <>
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholder="you@company.com"
-              containerStyle={{ marginBottom: spacing.lg }}
-            />
-            <Button onPress={handleSendOtp} loading={loading} disabled={googleLoading}>
-              Send login code
-            </Button>
+                <Input
+                  label="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholder="you@company.com"
+                  containerStyle={{ marginBottom: spacing.md }}
+                />
+                <Button onPress={handleSendOtp} loading={loading} disabled={googleLoading}>
+                  Send verification code
+                </Button>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing['2xl'] }}>
-              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-              <AppText variant="secondary" style={{ marginHorizontal: spacing.md, textTransform: 'uppercase' }}>
-                Or continue with
-              </AppText>
-              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-            </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.lg }}>
+                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+                  <AppText variant="secondary" style={{ marginHorizontal: spacing.sm }}>
+                    Or continue with
+                  </AppText>
+                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+                </View>
 
-            <Button variant="secondary" onPress={handleGoogleSignIn} loading={googleLoading} disabled={loading}>
-              Sign in with Google
-            </Button>
-          </>
-        ) : (
-          <>
-            <AppText style={{ textAlign: 'center', marginBottom: spacing.lg }}>
-              Enter the 6-digit code sent to {email}
-            </AppText>
-            <TextInput
-              style={{
-                height: 44,
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                marginBottom: spacing.lg,
-                textAlign: 'center',
-                fontSize: 24,
-                letterSpacing: 8,
-                color: colors.foreground,
-                fontFamily: 'Roboto_400Regular',
-              }}
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-              placeholder="000000"
-              placeholderTextColor={colors.secondaryForeground}
-            />
-            <Button onPress={handleVerifyOtp} loading={loading} style={{ marginBottom: spacing.md }}>
-              Verify code
-            </Button>
-            <Button variant="ghost" onPress={() => setOtpSent(false)}>
-              Use a different email
-            </Button>
-          </>
-        )}
+                <Button
+                  variant="outline"
+                  onPress={handleGoogleSignIn}
+                  loading={googleLoading}
+                  disabled={loading}
+                  icon={<Ionicons name="logo-google" size={18} color={colors.foreground} />}
+                >
+                  Sign in with Google
+                </Button>
+              </>
+            ) : (
+              <>
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: colors.primaryLight,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    alignSelf: 'center',
+                    marginBottom: spacing.md,
+                  }}
+                >
+                  <Ionicons name="mail" size={24} color={colors.primary} />
+                </View>
+                <AppText variant="h2" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
+                  Enter verification code
+                </AppText>
+                <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
+                  We sent a 6-digit code to {email}
+                </AppText>
+
+                <TextInput
+                  style={{
+                    height: 40,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                    paddingHorizontal: 16,
+                    marginBottom: spacing.md,
+                    textAlign: 'center',
+                    fontSize: 24,
+                    letterSpacing: 8,
+                    color: colors.foreground,
+                    fontFamily: 'Roboto_400Regular',
+                  }}
+                  value={otp}
+                  onChangeText={setOtp}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                  placeholderTextColor={colors.secondaryForeground}
+                />
+                <Button
+                  onPress={handleVerifyOtp}
+                  loading={loading}
+                  disabled={otp.length < 6}
+                  style={{ marginBottom: spacing.sm }}
+                >
+                  Verify code
+                </Button>
+                <Button variant="ghost" size="sm" onPress={() => setOtpSent(false)}>
+                  Use a different email
+                </Button>
+              </>
+            )}
+          </Card>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

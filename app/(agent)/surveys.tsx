@@ -8,13 +8,14 @@ import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { FormField } from '@/components/forms/FormField';
 import {
   Screen,
-  PageHeader,
   Button,
   SelectCard,
   AppText,
   CenteredScreen,
   LoadingSpinner,
   EmptyMessage,
+  ProgressBar,
+  SectionHeader,
 } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
@@ -101,11 +102,9 @@ export default function SurveysScreen() {
 
   return (
     <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-      <Screen scroll>
-        <AppText variant="secondary" style={{ marginBottom: spacing.sm }}>
-          Question {step + 1} of {questions.length}
-        </AppText>
-        <PageHeader title={current.question_text} />
+      <Screen scroll title="Surveys" subtitle={`Question ${step + 1} of ${questions.length}`}>
+        <ProgressBar value={(step + 1) / questions.length} />
+        <SectionHeader title={current.question_text} />
 
         {current.question_type === 'multiple_choice' && current.options ? (
           current.options.map((opt) => (
@@ -127,7 +126,7 @@ export default function SurveysScreen() {
 
         <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
           {step > 0 ? (
-            <Button variant="secondary" style={{ flex: 1 }} onPress={() => setStep(step - 1)}>
+            <Button variant="outline" style={{ flex: 1 }} onPress={() => setStep(step - 1)}>
               Back
             </Button>
           ) : null}

@@ -1,7 +1,7 @@
 import { View, Text, ViewStyle, TextStyle } from 'react-native';
 import { badge } from '@/theme';
 
-type BadgeVariant = 'primary' | 'secondary' | 'outline' | 'warning' | 'destructive';
+type BadgeVariant = 'primary' | 'secondary' | 'outline' | 'warning' | 'destructive' | 'success';
 
 interface BadgeProps {
   children: string;
@@ -15,6 +15,7 @@ const variantStyles: Record<BadgeVariant, { container: ViewStyle; text: TextStyl
   outline: { container: badge.outline, text: badge.outlineText },
   warning: { container: badge.warning, text: badge.warningText },
   destructive: { container: badge.destructive, text: badge.destructiveText },
+  success: { container: badge.success, text: badge.successText },
 };
 
 export function Badge({ children, variant = 'secondary', style }: BadgeProps) {

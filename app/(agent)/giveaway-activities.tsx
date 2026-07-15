@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
 
 export default function GiveawayActivitiesScreen() {
   const { user } = useAuth();
@@ -26,8 +26,7 @@ export default function GiveawayActivitiesScreen() {
 
   return (
     <ComponentGate code="CRM-0107">
-      <Screen scroll>
-        <PageHeader title="Giveaway Activities" />
+      <Screen scroll title="Giveaway Activities">
         {loading ? (
           <LoadingSpinner />
         ) : (

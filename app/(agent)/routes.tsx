@@ -5,7 +5,6 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import {
   Screen,
-  PageHeader,
   LoadingSpinner,
   EmptyMessage,
   ListItemCard,
@@ -45,12 +44,11 @@ export default function RoutesScreen() {
 
   return (
     <ComponentGate code="CRM-0098" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Today's Route" />
+      <Screen scroll title="Stores" subtitle="Today's assigned stores">
         {loading ? (
           <LoadingSpinner />
         ) : stops.length === 0 ? (
-          <EmptyMessage>No route assigned for today.</EmptyMessage>
+          <EmptyMessage>No stores assigned for today.</EmptyMessage>
         ) : (
           stops.map((stop, i) => (
             <ListItemCard

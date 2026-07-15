@@ -3,7 +3,7 @@ import { View, Image } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner } from '@/components/ui';
+import { Screen, LoadingSpinner } from '@/components/ui';
 import { radius, spacing } from '@/theme';
 
 export default function GalleryScreen() {
@@ -29,8 +29,7 @@ export default function GalleryScreen() {
 
   return (
     <ComponentGate code="CRM-0120">
-      <Screen scroll>
-        <PageHeader title="Gallery" />
+      <Screen scroll title="Gallery">
         {loading ? (
           <LoadingSpinner />
         ) : (

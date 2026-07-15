@@ -7,7 +7,7 @@ import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { FormField } from '@/components/forms/FormField';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
-import { Screen, PageHeader, Button, Card, AppText, EmptyMessage } from '@/components/ui';
+import { Screen, Button, Card, AppText, EmptyMessage } from '@/components/ui';
 import { spacing } from '@/theme';
 
 function ReportForm({ title, table, onDone }: { title: string; table: string; onDone: () => void }) {
@@ -62,8 +62,7 @@ export default function ReportsScreen() {
 
   return (
     <ComponentGate code="CRM-0099" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Reports" />
+      <Screen scroll title="Reports">
         {reports.length === 0 ? (
           <EmptyMessage>No reports enabled for this project.</EmptyMessage>
         ) : (

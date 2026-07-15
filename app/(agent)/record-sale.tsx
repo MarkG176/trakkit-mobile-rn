@@ -7,7 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { formatCurrencySimple } from '@/utils/currency';
-import { Screen, PageHeader, Button, AppText } from '@/components/ui';
+import { Screen, Button, AppText } from '@/components/ui';
 import { spacing } from '@/theme';
 
 export default function RecordSaleScreen() {
@@ -59,8 +59,7 @@ export default function RecordSaleScreen() {
 
   return (
     <ComponentGate code="CRM-0094" redirectTo="/(agent)">
-      <Screen scroll>
-        <PageHeader title="Record Sale" />
+      <Screen scroll title="Record Sale" showBack>
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
         <FormField

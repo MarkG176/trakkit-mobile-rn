@@ -4,10 +4,12 @@ import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { View, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { AppShell } from '@/components/AppShell';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
@@ -46,22 +48,42 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RootFrame({ children }: { children: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top,
+        backgroundColor: colors.background,
+      }}
+    >
+      <SyncStatusBar />
+      <View style={{ flex: 1, backgroundColor: colors.background }}>{children}</View>
+    </View>
+  );
+}
+
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <WorkspaceProvider>
-            <AgentStatusProvider>
-              <SyncStatusBar />
-              <BackgroundLocationTracker />
-              <AuthGate>
-                <Slot />
-              </AuthGate>
-            </AgentStatusProvider>
-          </WorkspaceProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <AppShell>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <WorkspaceProvider>
+              <AgentStatusProvider>
+                <BackgroundLocationTracker />
+                <RootFrame>
+                  <AuthGate>
+                    <Slot />
+                  </AuthGate>
+                </RootFrame>
+              </AgentStatusProvider>
+            </WorkspaceProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </AppShell>
     </ThemeProvider>
   );
 }

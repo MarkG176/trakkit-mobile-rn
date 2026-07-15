@@ -3,7 +3,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
 import { PermissionGuidance } from '@/components/PermissionGuidance';
-import { Screen, PageHeader, Button, Card, AppText } from '@/components/ui';
+import { Screen, Button, Card, AppText } from '@/components/ui';
 import { spacing } from '@/theme';
 
 export default function SettingsScreen() {
@@ -21,8 +21,7 @@ export default function SettingsScreen() {
 
   return (
     <ComponentGate code="CRM-0101">
-      <Screen scroll>
-        <PageHeader title="Settings" />
+      <Screen scroll title="Settings">
         <Card style={{ marginBottom: spacing.lg }}>
           <AppText style={{ fontWeight: '500', marginBottom: spacing.sm }}>Background location</AppText>
           <AppText variant="secondary" style={{ marginBottom: spacing.md }}>

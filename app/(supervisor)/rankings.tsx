@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function RankingsScreen() {
@@ -32,8 +32,7 @@ export default function RankingsScreen() {
 
   return (
     <ComponentGate code="CRM-0122">
-      <Screen scroll>
-        <PageHeader title="Rankings" />
+      <Screen scroll title="Rankings">
         {loading ? (
           <LoadingSpinner />
         ) : (

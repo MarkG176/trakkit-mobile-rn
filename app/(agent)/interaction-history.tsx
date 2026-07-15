@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, PageHeader, LoadingSpinner, ListItemCard } from '@/components/ui';
+import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
 
 export default function InteractionHistoryScreen() {
   const { user } = useAuth();
@@ -26,8 +26,7 @@ export default function InteractionHistoryScreen() {
 
   return (
     <ComponentGate code="CRM-0105">
-      <Screen scroll>
-        <PageHeader title="Interaction History" />
+      <Screen scroll title="Interaction History">
         {loading ? (
           <LoadingSpinner />
         ) : (

@@ -1,3 +1,4 @@
+// TODO: unused — confirm before deleting
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';

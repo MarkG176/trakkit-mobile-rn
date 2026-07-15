@@ -1,12 +1,11 @@
 import { ComponentGate } from '@/components/ComponentGate';
-import { Screen, PageHeader, AppText } from '@/components/ui';
+import { Screen, AppText } from '@/components/ui';
 import { spacing } from '@/theme';
 
 export default function HelpSupportScreen() {
   return (
     <ComponentGate code="CRM-0109">
-      <Screen scroll>
-        <PageHeader title="Help & Support" />
+      <Screen scroll title="Help & Support">
         <AppText style={{ marginBottom: spacing.md }}>
           Contact your supervisor or submit a support ticket from the Chat tab.
         </AppText>

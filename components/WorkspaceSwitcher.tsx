@@ -6,7 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
-import { ChevronDown } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { AppText, Button, Card } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
@@ -49,7 +49,7 @@ export function WorkspaceSwitcher() {
         <AppText style={{ fontWeight: '500', maxWidth: 120 }} numberOfLines={1}>
           {currentName}
         </AppText>
-        <ChevronDown size={16} color={colors.secondaryForeground} style={{ marginLeft: 4 }} />
+        <Ionicons name="chevron-down" size={16} color={colors.secondaryForeground} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>

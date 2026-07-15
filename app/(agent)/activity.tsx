@@ -4,7 +4,6 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import {
   Screen,
-  PageHeader,
   LoadingSpinner,
   EmptyMessage,
   ListItemCard,
@@ -33,8 +32,7 @@ export default function ActivityScreen() {
 
   return (
     <ComponentGate code="CRM-0091">
-      <Screen scroll>
-        <PageHeader title="Activity" />
+      <Screen scroll title="Activity">
         {loading ? (
           <LoadingSpinner />
         ) : items.length === 0 ? (

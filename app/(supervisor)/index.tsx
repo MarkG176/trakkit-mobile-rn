@@ -3,13 +3,11 @@ import { ScrollView, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 import {
-  PageHeader,
   LoadingSpinner,
   EmptyMessage,
   ListItemCard,
-  AppText,
+  Badge,
   SectionHeader,
 } from '@/components/ui';
 import { colors, spacing } from '@/theme';
@@ -19,6 +17,13 @@ interface AgentStatus {
   agent_id: string;
   status: string;
   timestamp: string;
+}
+
+function statusBadgeVariant(status: string): 'success' | 'destructive' | 'warning' | 'primary' {
+  if (status === 'checked_in') return 'success';
+  if (status === 'checked_out') return 'destructive';
+  if (status === 'lunch') return 'warning';
+  return 'primary';
 }
 
 export default function SupervisorDashboard() {
@@ -74,22 +79,11 @@ export default function SupervisorDashboard() {
 
   return (
     <ComponentGate code="CRM-0118" redirectTo="/(agent)">
-      <View style={{ flex: 1, backgroundColor: colors.muted }}>
-        <View
-          style={{
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            backgroundColor: colors.card,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.md,
-          }}
-        >
-          <PageHeader title="Supervisor" />
-          <WorkspaceSwitcher />
-        </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}
+          contentContainerStyle={{ padding: spacing.md }}
+          showsVerticalScrollIndicator={false}
         >
           <SectionHeader title="Live agent activity" />
           {loading ? (
@@ -103,9 +97,9 @@ export default function SupervisorDashboard() {
                 title={`${a.agent_id.slice(0, 8)}…`}
                 subtitle={new Date(a.timestamp).toLocaleString()}
                 trailing={
-                  <AppText style={{ textTransform: 'capitalize', color: colors.primary }}>
+                  <Badge variant={statusBadgeVariant(a.status)}>
                     {a.status.replace(/_/g, ' ')}
-                  </AppText>
+                  </Badge>
                 }
               />
             ))

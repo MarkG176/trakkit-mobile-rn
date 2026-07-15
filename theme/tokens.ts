@@ -1,15 +1,12 @@
 export const colors = {
-  // Brand
   primary: '#00A3AD',
   primaryForeground: '#FFFFFF',
   primaryLight: '#E0F4F5',
 
-  // Status
   success: '#4CAF50',
   warning: '#FFC107',
   destructive: '#F44336',
 
-  // Neutrals
   background: '#FFFFFF',
   foreground: '#333333',
   secondaryForeground: '#666666',
@@ -17,7 +14,6 @@ export const colors = {
   mutedForeground: '#666666',
   border: '#CCCCCC',
 
-  // Surfaces
   card: '#FFFFFF',
   accent: '#E0F4F5',
 } as const;
@@ -29,13 +25,16 @@ export const radius = {
   full: 9999,
 } as const;
 
+/** Guide: xs 4, sm 8, md 16, lg 24, xl 32 */
 export const spacing = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  /** @deprecated use md */
   '2xl': 24,
+  /** @deprecated use xl */
   '3xl': 32,
 } as const;
 
@@ -47,3 +46,11 @@ export const tabBar = {
   borderTopColor: colors.border,
   labelStyle: { fontSize: 12, fontWeight: '500' as const },
 } as const;
+
+export const typography = {
+  h1: { fontSize: 28, fontWeight: '700' as const },
+  h2: { fontSize: 22, fontWeight: '600' as const },
+  h3: { fontSize: 18, fontWeight: '500' as const },
+  body: { fontSize: 14, fontWeight: '400' as const },
+  caption: { fontSize: 12, fontWeight: '400' as const },
+};
