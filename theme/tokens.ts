@@ -12,7 +12,8 @@ export const colors = {
   secondaryForeground: '#666666',
   muted: '#F8F8F8',
   mutedForeground: '#666666',
-  border: '#CCCCCC',
+  border: '#E2E8EB',
+  canvas: '#F4F7F8',
 
   card: '#FFFFFF',
   accent: '#E0F4F5',
@@ -20,8 +21,8 @@ export const colors = {
 
 export const radius = {
   sm: 4,
-  md: 6,
-  lg: 8,
+  md: 5,
+  lg: 6,
   full: 9999,
 } as const;
 

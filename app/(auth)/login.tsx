@@ -158,30 +158,42 @@ export default function LoginScreen() {
                 <AppText variant="h2" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
                   Enter verification code
                 </AppText>
-                <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
-                  We sent a 6-digit code to {email}
+                <AppText
+                  variant="secondary"
+                  style={{ textAlign: 'center', marginBottom: spacing.lg, alignSelf: 'stretch', flexShrink: 1 }}
+                >
+                  We sent a 6-digit code to{'\n'}
+                  <AppText variant="secondary" style={{ fontWeight: '600' }}>
+                    {email}
+                  </AppText>
                 </AppText>
 
                 <TextInput
                   style={{
-                    height: 40,
+                    width: '100%',
+                    minHeight: 52,
                     borderWidth: 1,
                     borderColor: colors.border,
                     borderRadius: 8,
-                    paddingHorizontal: 16,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
                     marginBottom: spacing.md,
                     textAlign: 'center',
-                    fontSize: 24,
-                    letterSpacing: 8,
+                    fontSize: 20,
+                    letterSpacing: 4,
                     color: colors.foreground,
                     fontFamily: 'Roboto_400Regular',
+                    includeFontPadding: false,
+                    textAlignVertical: 'center',
                   }}
                   value={otp}
-                  onChangeText={setOtp}
+                  onChangeText={(value) => setOtp(value.replace(/\D/g, '').slice(0, 6))}
                   keyboardType="number-pad"
                   maxLength={6}
                   placeholder="000000"
                   placeholderTextColor={colors.secondaryForeground}
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
                 />
                 <Button
                   onPress={handleVerifyOtp}

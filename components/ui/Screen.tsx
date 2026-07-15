@@ -57,7 +57,7 @@ export function Screen({
   );
 
   return (
-    <View style={[{ flex: 1, backgroundColor: colors.background }, style]} {...props}>
+    <View style={[{ flex: 1, backgroundColor: colors.canvas }, style]} {...props}>
       {scroll ? (
         <ScrollView
           style={{ flex: 1 }}

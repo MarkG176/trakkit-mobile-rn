@@ -23,22 +23,29 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
 
+  const inAuth = segments[0] === '(auth)';
+  const atRoot = !segments[0];
+
   useEffect(() => {
     if (loading || roleLoading) return;
-
-    const inAuth = segments[0] === '(auth)';
 
     if (!user && !inAuth) {
       router.replace('/(auth)/login');
       return;
     }
 
-    if (user && inAuth) {
+    if (user && (inAuth || atRoot)) {
       router.replace(isSupervisor ? '/(supervisor)' : '/(agent)');
     }
-  }, [user, loading, roleLoading, isSupervisor, segments]);
+  }, [user, loading, roleLoading, isSupervisor, inAuth, atRoot, router]);
 
-  if (loading || (user && roleLoading)) {
+  const pendingRoute =
+    loading ||
+    roleLoading ||
+    (!user && !inAuth) ||
+    (user && (inAuth || atRoot));
+
+  if (pendingRoute) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <LoadingSpinner label="Loading session" />

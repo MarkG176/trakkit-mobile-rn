@@ -21,7 +21,7 @@ function Stop-DevServerPort {
   } catch {
     $lines = netstat -ano | Select-String ":$Port\s+.*LISTENING"
     foreach ($line in $lines) {
-      $parts = ($line -toString().Trim() -split '\s+')
+      $parts = ($line.ToString().Trim() -split '\s+')
       if ($parts.Length -ge 1) { $pids += $parts[-1] }
     }
     $pids = $pids | Select-Object -Unique

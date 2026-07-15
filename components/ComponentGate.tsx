@@ -5,6 +5,7 @@ import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { LoadingSpinner } from '@/components/ui';
+import { colors } from '@/theme';
 
 interface ComponentGateProps {
   code: string;
@@ -27,7 +28,14 @@ export function ComponentGate({
 
   if (!workspaceReady || !componentsReady) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
         <LoadingSpinner label="Loading workspace" />
       </View>
     );

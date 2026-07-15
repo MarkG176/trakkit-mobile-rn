@@ -51,7 +51,7 @@ export function TopBar() {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flex: 1, paddingRight: spacing.md }}>
+        <View style={{ flex: 1, paddingRight: spacing.md, minWidth: 0 }}>
           <WorkspaceSwitcher />
         </View>
         <Pressable

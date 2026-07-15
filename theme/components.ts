@@ -67,14 +67,14 @@ export const card = {
   container: {
     backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderColor: '#EBF0F2',
+    borderRadius: radius.md,
     padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    shadowColor: '#64748B',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   } satisfies ViewStyle,
 };
 

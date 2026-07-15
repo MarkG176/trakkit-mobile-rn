@@ -5,6 +5,7 @@ import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useUserRole } from '@/hooks/useUserRole';
 import { tabBarIcon, getTabScreenOptions } from '@/components/navigation/TabIcon';
 import { TopBar } from '@/components/dashboard/TopBar';
+import { LoadingSpinner } from '@/components/ui';
 import { colors } from '@/theme';
 
 export default function SupervisorLayout() {
@@ -12,7 +13,13 @@ export default function SupervisorLayout() {
   const { isEnabled, isLoaded } = useProjectComponents();
   const { isSupervisor, loading } = useUserRole();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <LoadingSpinner label="Loading dashboard" />
+      </View>
+    );
+  }
   if (!isSupervisor) return <Redirect href="/(agent)" />;
 
   const show = (code: string) => !isLoaded || isEnabled(code);

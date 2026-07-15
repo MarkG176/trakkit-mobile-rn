@@ -4,13 +4,15 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Pressable,
+  Modal,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
-import { CameraCapture } from '@/components/CameraCapture';
-import { ComponentGate } from '@/components/ComponentGate';
+import { PermissionGuidance } from '@/components/PermissionGuidance';
 import { getCurrentLocation } from '@/utils/location';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
@@ -57,9 +59,11 @@ export function RecordAttendanceForm() {
   const { isCheckedIn, refresh } = useAgentStatus();
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [showCamera, setShowCamera] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<'checked_in' | 'checked_out' | null>(null);
+  const [cameraDenied, setCameraDenied] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoPreviewOpen, setPhotoPreviewOpen] = useState(false);
+
+  const AVATAR_SIZE = 106;
 
   const loadPhoto = useCallback(async () => {
     if (!user) {
@@ -81,16 +85,32 @@ export function RecordAttendanceForm() {
     loadPhoto();
   }, [loadPhoto, isCheckedIn]);
 
-  const beginCapture = () => {
+  const beginCapture = async () => {
     if (loading) return;
-    setPendingStatus(isCheckedIn ? 'checked_out' : 'checked_in');
-    setShowCamera(true);
+    const status = isCheckedIn ? 'checked_out' : 'checked_in';
+
+    const { status: permStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    if (permStatus !== 'granted') {
+      setCameraDenied(true);
+      return;
+    }
+    setCameraDenied(false);
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsEditing: true,
+      aspect: [1, 1],
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      await handleCapture(result.assets[0].uri, status);
+    }
   };
 
-  const handleCapture = async (uri: string) => {
-    if (!user || !currentWorkspaceId || !pendingStatus) return;
+  const handleCapture = async (uri: string, status: 'checked_in' | 'checked_out') => {
+    if (!user || !currentWorkspaceId) return;
     setLoading(true);
-    setShowCamera(false);
 
     try {
       const location = await getCurrentLocation();
@@ -99,7 +119,7 @@ export function RecordAttendanceForm() {
       const payload = {
         agent_id: user.id,
         workspace_id: currentWorkspaceId,
-        status: pendingStatus,
+        status,
         location_lat: location.latitude,
         location_lng: location.longitude,
         selfie_url: uploaded,
@@ -110,10 +130,10 @@ export function RecordAttendanceForm() {
       if (!synced) {
         Alert.alert('Saved offline', 'Check-in will sync when you reconnect.');
       } else {
-        Alert.alert('Success', pendingStatus === 'checked_in' ? 'Checked in!' : 'Checked out!');
+        Alert.alert('Success', status === 'checked_in' ? 'Checked in!' : 'Checked out!');
       }
 
-      if (pendingStatus === 'checked_in') {
+      if (status === 'checked_in') {
         await startBackgroundTracking();
       } else {
         await stopBackgroundTracking();
@@ -125,31 +145,14 @@ export function RecordAttendanceForm() {
       Alert.alert('Error', error instanceof Error ? error.message : 'Check-in failed');
     } finally {
       setLoading(false);
-      setPendingStatus(null);
     }
   };
-
-  if (showCamera) {
-    return (
-      <ComponentGate code="CRM-0026">
-        <Card>
-          <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing.md, flexShrink: 1 }}>
-            Take a selfie to {pendingStatus === 'checked_in' ? 'check in' : 'check out'}
-          </AppText>
-          <CameraCapture onCapture={handleCapture} label="Capture selfie" />
-          <Button variant="ghost" onPress={() => setShowCamera(false)} style={{ marginTop: spacing.md }}>
-            Cancel
-          </Button>
-        </Card>
-      </ComponentGate>
-    );
-  }
 
   const actionLabel = isCheckedIn ? 'Check Out Now' : 'Check In Now';
   const actionIcon = isCheckedIn ? 'log-out-outline' : 'log-in-outline';
 
   return (
-    <ComponentGate code="CRM-0026">
+    <>
       <Card style={{ padding: spacing.lg }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.xs }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
@@ -166,65 +169,82 @@ export function RecordAttendanceForm() {
         </AppText>
 
         <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
-          <View
-            style={{
-              padding: 5,
-              borderRadius: radius.full,
-              borderWidth: 2,
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-            }}
+          <Pressable
+            onPress={() => setPhotoPreviewOpen(true)}
+            disabled={!photoUrl || profileLoading}
+            accessibilityRole="button"
+            accessibilityLabel="View check-in photo"
           >
             <View
               style={{
-                padding: 4,
+                padding: 5,
                 borderRadius: radius.full,
-                borderWidth: 1,
-                borderColor: '#E8ECEF',
-                backgroundColor: colors.card,
+                borderWidth: 2,
+                borderColor: colors.border,
+                backgroundColor: colors.background,
               }}
             >
               <View
                 style={{
-                  width: 96,
-                  height: 96,
+                  padding: 4,
                   borderRadius: radius.full,
-                  overflow: 'hidden',
-                  backgroundColor: colors.accent,
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#E8ECEF',
+                  backgroundColor: colors.card,
                 }}
               >
-                {profileLoading ? (
-                  <ActivityIndicator color={colors.primary} />
-                ) : photoUrl ? (
-                  <Image source={{ uri: photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                ) : (
-                  <Ionicons name="person" size={40} color={colors.secondaryForeground} />
-                )}
-                {loading ? (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      bottom: 0,
-                      left: 0,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'rgba(0,0,0,0.35)',
-                    }}
-                  >
-                    <ActivityIndicator color={colors.primaryForeground} />
-                  </View>
-                ) : null}
+                <View
+                  style={{
+                    width: AVATAR_SIZE,
+                    height: AVATAR_SIZE,
+                    borderRadius: radius.full,
+                    overflow: 'hidden',
+                    backgroundColor: colors.accent,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {profileLoading ? (
+                    <ActivityIndicator color={colors.primary} />
+                  ) : photoUrl ? (
+                    <Image source={{ uri: photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  ) : (
+                    <Ionicons name="person" size={44} color={colors.secondaryForeground} />
+                  )}
+                  {loading ? (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(0,0,0,0.35)',
+                      }}
+                    >
+                      <ActivityIndicator color={colors.primaryForeground} />
+                    </View>
+                  ) : null}
+                </View>
               </View>
             </View>
-          </View>
+          </Pressable>
         </View>
 
         <InfoRow icon="shield-checkmark-outline" label="Selfie verification required" />
         <InfoRow icon="location-outline" label="Location captured automatically" />
+
+        {cameraDenied ? (
+          <PermissionGuidance
+            type="camera"
+            onRetry={() => {
+              setCameraDenied(false);
+              beginCapture();
+            }}
+          />
+        ) : null}
 
         <Button
           variant="primary"
@@ -237,6 +257,50 @@ export function RecordAttendanceForm() {
           {actionLabel}
         </Button>
       </Card>
-    </ComponentGate>
+
+      <Modal
+        visible={photoPreviewOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPhotoPreviewOpen(false)}
+      >
+        <Pressable
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            padding: spacing.lg,
+          }}
+          onPress={() => setPhotoPreviewOpen(false)}
+        >
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <Card style={{ padding: spacing.lg }}>
+              <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.md, textAlign: 'center' }}>
+                Check-in photo
+              </AppText>
+              {photoUrl ? (
+                <Image
+                  source={{ uri: photoUrl }}
+                  style={{
+                    width: '100%',
+                    aspectRatio: 1,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.muted,
+                  }}
+                  resizeMode="contain"
+                />
+              ) : null}
+              <Button
+                variant="secondary"
+                onPress={() => setPhotoPreviewOpen(false)}
+                style={{ marginTop: spacing.md }}
+              >
+                Close
+              </Button>
+            </Card>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

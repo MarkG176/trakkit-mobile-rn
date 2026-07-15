@@ -10,7 +10,7 @@ import {
   EmptyMessage,
   AppText,
 } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 function stockColor(amount: number): string {
   if (amount < 5) return colors.destructive;
@@ -58,22 +58,22 @@ export default function InventoryScreen() {
                 alignItems: 'center',
                 backgroundColor: colors.card,
                 borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
+                borderColor: '#EBF0F2',
+                borderRadius: radius.md,
                 padding: spacing.md,
                 marginBottom: spacing.sm,
-                shadowColor: '#000',
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-                shadowOffset: { width: 0, height: 1 },
-                elevation: 2,
+                shadowColor: '#64748B',
+                shadowOpacity: 0.06,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 1,
               }}
             >
               <View
                 style={{
                   width: 64,
                   height: 64,
-                  borderRadius: 8,
+                  borderRadius: radius.md,
                   backgroundColor: colors.primaryLight,
                   alignItems: 'center',
                   justifyContent: 'center',
