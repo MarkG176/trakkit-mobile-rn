@@ -41,7 +41,7 @@ export default function InventoryScreen() {
     <ComponentGate code="CRM-0093" redirectTo="/(agent)">
       <Screen scroll title="Inventory" subtitle="Your assigned products">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading inventory" />
         ) : items.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
             <Ionicons name="cube-outline" size={48} color={colors.mutedForeground} />

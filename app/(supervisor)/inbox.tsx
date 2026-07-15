@@ -29,7 +29,7 @@ export default function InboxScreen() {
     <ComponentGate code="CRM-0126">
       <Screen scroll title="Inbox">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading inbox" />
         ) : messages.length === 0 ? (
           <EmptyMessage>No messages.</EmptyMessage>
         ) : (

@@ -27,7 +27,7 @@ export default function ManageAgentsScreen() {
     <ComponentGate code="CRM-0111">
       <Screen scroll title="Manage Agents">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading team" />
         ) : (
           members.map((m) => (
             <ListItemCard

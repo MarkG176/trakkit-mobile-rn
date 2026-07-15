@@ -1,10 +1,10 @@
 // TODO: unused — confirm before deleting
 import { ReactNode } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useDashboardData, type PerformanceData } from '@/hooks/useDashboardData';
-import { AppText, Badge, Card, ProgressBar, SectionHeader } from '@/components/ui';
+import { AppText, Badge, Card, ProgressBar, SectionHeader, LoadingSpinner } from '@/components/ui';
 import { badge, colors, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
@@ -118,7 +118,7 @@ export function PerformanceCards() {
   if (loading) {
     return (
       <View style={{ paddingVertical: spacing.lg, alignItems: 'center' }}>
-        <ActivityIndicator color={colors.primary} />
+        <LoadingSpinner label="Loading stats" />
       </View>
     );
   }

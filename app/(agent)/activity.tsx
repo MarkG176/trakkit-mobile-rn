@@ -34,7 +34,7 @@ export default function ActivityScreen() {
     <ComponentGate code="CRM-0091">
       <Screen scroll title="Activity">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading activity" />
         ) : items.length === 0 ? (
           <EmptyMessage>No activity yet.</EmptyMessage>
         ) : (

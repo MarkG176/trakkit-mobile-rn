@@ -3,7 +3,7 @@ import '@/tasks/backgroundLocation';
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
@@ -13,6 +13,7 @@ import { AppShell } from '@/components/AppShell';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
+import { LoadingSpinner } from '@/components/ui';
 import { useUserRole } from '@/hooks/useUserRole';
 import { colors } from '@/theme';
 
@@ -40,7 +41,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (loading || (user && roleLoading)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <LoadingSpinner label="Loading session" />
       </View>
     );
   }

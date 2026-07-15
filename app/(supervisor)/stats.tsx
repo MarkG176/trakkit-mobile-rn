@@ -41,7 +41,7 @@ export default function StatsScreen() {
     <ComponentGate code="CRM-0124">
       <Screen scroll title="Stats">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading stats" />
         ) : (
           <>
             <ListItemCard

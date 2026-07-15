@@ -66,7 +66,14 @@ export function WorkspaceSwitcher() {
             <AppText variant="h3" style={{ marginBottom: spacing.md }}>
               Switch workspace
             </AppText>
-            {isLoading && <ActivityIndicator color={colors.primary} style={{ marginBottom: spacing.sm }} />}
+            {isLoading ? (
+              <View style={{ alignItems: 'center', marginBottom: spacing.sm }}>
+                <ActivityIndicator color={colors.primary} />
+                <AppText variant="secondary" style={{ marginTop: spacing.sm }}>
+                  Loading workspaces
+                </AppText>
+              </View>
+            ) : null}
             <FlatList
               data={userWorkspaces}
               keyExtractor={(item) => item.workspace_id ?? item.id}

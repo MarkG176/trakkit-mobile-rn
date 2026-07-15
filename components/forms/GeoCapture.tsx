@@ -46,9 +46,7 @@ export function GeoCapture({ targetLat, targetLon, onLocation }: GeoCaptureProps
     return (
       <View
         style={{
-          flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.sm,
           marginBottom: spacing.lg,
           borderRadius: radius.lg,
           backgroundColor: colors.muted,
@@ -56,7 +54,9 @@ export function GeoCapture({ targetLat, targetLon, onLocation }: GeoCaptureProps
         }}
       >
         <ActivityIndicator size="small" color={colors.primary} />
-        <AppText variant="secondary">Capturing location...</AppText>
+        <AppText variant="secondary" style={{ marginTop: spacing.sm }}>
+          Getting location
+        </AppText>
       </View>
     );
   }

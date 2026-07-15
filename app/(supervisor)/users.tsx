@@ -27,7 +27,7 @@ export default function UsersScreen() {
     <ComponentGate code="CRM-0123">
       <Screen scroll title="Users">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading users" />
         ) : (
           members.map((m) => (
             <ListItemCard

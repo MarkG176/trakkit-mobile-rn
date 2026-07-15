@@ -34,7 +34,7 @@ export default function RankingsScreen() {
     <ComponentGate code="CRM-0122">
       <Screen scroll title="Rankings">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading rankings" />
         ) : (
           ranks.map((r, i) => (
             <ListItemCard

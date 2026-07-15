@@ -28,7 +28,7 @@ export default function SurveyActivitiesScreen() {
     <ComponentGate code="CRM-0108">
       <Screen scroll title="Survey Activities">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading surveys" />
         ) : (
           items.map((item) => (
             <ListItemCard

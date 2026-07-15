@@ -85,7 +85,7 @@ export default function SurveysScreen() {
   if (loading) {
     return (
       <CenteredScreen>
-        <LoadingSpinner />
+        <LoadingSpinner label="Loading surveys" />
       </CenteredScreen>
     );
   }

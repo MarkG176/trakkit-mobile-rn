@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { AppText, Card } from '@/components/ui';
+import { AppText, Card, LoadingSpinner } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 
 interface AgentLocation {
@@ -103,7 +103,7 @@ export default function MapScreen() {
       <View style={{ flex: 1 }}>
         {loading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <LoadingSpinner label="Loading map" />
           </View>
         ) : (
           <MapView style={{ flex: 1 }} initialRegion={initialRegion}>

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { createSessionFromUrl } from '@/utils/oauth';
+import { LoadingSpinner } from '@/components/ui';
 import { colors } from '@/theme';
 
 export default function AuthCallbackScreen() {
@@ -31,7 +32,7 @@ export default function AuthCallbackScreen() {
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-      <ActivityIndicator size="large" color={colors.primary} />
+      <LoadingSpinner label="Signing in" />
     </View>
   );
 }

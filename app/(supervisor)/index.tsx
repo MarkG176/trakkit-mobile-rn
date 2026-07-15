@@ -87,7 +87,7 @@ export default function SupervisorDashboard() {
         >
           <SectionHeader title="Live agent activity" />
           {loading ? (
-            <LoadingSpinner />
+            <LoadingSpinner label="Loading activity" />
           ) : agents.length === 0 ? (
             <EmptyMessage>No recent agent activity.</EmptyMessage>
           ) : (

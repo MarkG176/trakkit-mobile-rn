@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { Redirect } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { workspaceService } from '@/services/workspaceService';
-import { colors } from '@/theme';
+import { LoadingSpinner } from '@/components/ui';
 
 interface ComponentGateProps {
   code: string;
@@ -28,7 +28,7 @@ export function ComponentGate({
   if (!workspaceReady || !componentsReady) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <LoadingSpinner label="Loading workspace" />
       </View>
     );
   }

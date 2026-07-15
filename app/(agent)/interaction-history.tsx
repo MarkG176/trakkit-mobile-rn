@@ -28,7 +28,7 @@ export default function InteractionHistoryScreen() {
     <ComponentGate code="CRM-0105">
       <Screen scroll title="Interaction History">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading history" />
         ) : (
           items.map((item) => (
             <ListItemCard

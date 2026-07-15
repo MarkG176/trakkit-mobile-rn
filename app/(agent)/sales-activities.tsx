@@ -28,7 +28,7 @@ export default function SalesActivitiesScreen() {
     <ComponentGate code="CRM-0106">
       <Screen scroll title="Sales Activities">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading sales" />
         ) : (
           items.map((item) => (
             <ListItemCard

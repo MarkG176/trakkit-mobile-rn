@@ -31,7 +31,7 @@ export default function GalleryScreen() {
     <ComponentGate code="CRM-0120">
       <Screen scroll title="Gallery">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading photos" />
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
             {photos.map((p) =>

@@ -28,7 +28,7 @@ export default function GiveawayActivitiesScreen() {
     <ComponentGate code="CRM-0107">
       <Screen scroll title="Giveaway Activities">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading giveaways" />
         ) : (
           items.map((item) => (
             <ListItemCard

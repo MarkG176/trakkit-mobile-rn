@@ -29,7 +29,7 @@ export default function FeedbackScreen() {
     <ComponentGate code="CRM-0119">
       <Screen scroll title="Feedback">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner label="Loading feedback" />
         ) : (
           items.map((item) => (
             <ListItemCard

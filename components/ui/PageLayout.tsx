@@ -39,10 +39,13 @@ export function PageHeader({ title, subtitle, onBack, showBack, right }: PageHea
   );
 }
 
-export function LoadingSpinner({ style }: { style?: ViewStyle }) {
+export function LoadingSpinner({ style, label }: { style?: ViewStyle; label: string }) {
   return (
     <View style={[{ alignItems: 'center', paddingVertical: spacing.lg }, style]}>
       <ActivityIndicator size="large" color={colors.primary} />
+      <AppText variant="secondary" style={{ marginTop: spacing.sm, textAlign: 'center' }}>
+        {label}
+      </AppText>
     </View>
   );
 }
