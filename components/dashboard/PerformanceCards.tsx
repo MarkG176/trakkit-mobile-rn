@@ -1,4 +1,3 @@
-// TODO: unused — confirm before deleting
 import { ReactNode } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
