@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner, ListItemCard } from '@/components/ui';
 
 export default function InteractionHistoryScreen() {
   const { user } = useAuth();
@@ -26,21 +26,20 @@ export default function InteractionHistoryScreen() {
 
   return (
     <ComponentGate code="CRM-0105">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Interaction History</Text>
+      <Screen scroll>
+        <PageHeader title="Interaction History" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
           items.map((item) => (
-            <View key={item.id} className="mb-2 rounded-xl border border-slate-100 p-3">
-              <Text className="capitalize text-slate-900">{item.interaction_type ?? 'interaction'}</Text>
-              <Text className="text-xs text-slate-500">
-                {item.created_at ? new Date(item.created_at).toLocaleString() : ''}
-              </Text>
-            </View>
+            <ListItemCard
+              key={item.id}
+              title={(item.interaction_type ?? 'interaction').replace(/_/g, ' ')}
+              subtitle={item.created_at ? new Date(item.created_at).toLocaleString() : undefined}
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

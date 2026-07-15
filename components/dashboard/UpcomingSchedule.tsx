@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { AppText, Card, SectionHeader } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 interface ScheduleItem {
   id: string;
@@ -46,21 +48,21 @@ export function UpcomingSchedule() {
 
   return (
     <ComponentGate code="CRM-0052">
-      <View className="px-4 py-4">
-        <Text className="mb-3 text-base font-bold text-slate-900">Upcoming Schedule</Text>
+      <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
+        <SectionHeader title="Upcoming Schedule" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <ActivityIndicator color={colors.primary} />
         ) : items.length === 0 ? (
-          <View className="rounded-xl border border-slate-200 bg-white p-6">
-            <Text className="text-center text-slate-500">No upcoming tasks</Text>
-          </View>
+          <Card>
+            <AppText variant="secondary" style={{ textAlign: 'center' }}>No upcoming tasks</AppText>
+          </Card>
         ) : (
           items.map((item) => (
-            <View key={item.id} className="mb-2 rounded-xl border border-slate-200 bg-white p-4">
-              <Text className="text-xs text-slate-500">{item.time}</Text>
-              <Text className="font-medium text-blue-600">{item.title}</Text>
-              <Text className="mt-1 text-xs capitalize text-slate-500">{item.location}</Text>
-            </View>
+            <Card key={item.id} style={{ marginBottom: spacing.sm }}>
+              <AppText variant="secondary">{item.time}</AppText>
+              <AppText style={{ fontWeight: '500', color: colors.primary }}>{item.title}</AppText>
+              <AppText variant="secondary" style={{ marginTop: 4, textTransform: 'capitalize' }}>{item.location}</AppText>
+            </Card>
           ))
         )}
       </View>

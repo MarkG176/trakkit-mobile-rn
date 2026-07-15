@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Image, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
+import { View, Image } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner } from '@/components/ui';
+import { radius, spacing } from '@/theme';
 
 export default function GalleryScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -27,20 +29,24 @@ export default function GalleryScreen() {
 
   return (
     <ComponentGate code="CRM-0120">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Gallery</Text>
+      <Screen scroll>
+        <PageHeader title="Gallery" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
-          <View className="flex-row flex-wrap gap-2">
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
             {photos.map((p) =>
               p.selfie_url ? (
-                <Image key={p.id} source={{ uri: p.selfie_url }} className="h-24 w-24 rounded-lg" />
+                <Image
+                  key={p.id}
+                  source={{ uri: p.selfie_url }}
+                  style={{ width: 96, height: 96, borderRadius: radius.lg }}
+                />
               ) : null,
             )}
           </View>
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

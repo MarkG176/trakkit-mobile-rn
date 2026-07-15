@@ -5,6 +5,7 @@ import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { mergeWithDefaults } from '@/data/mobileComponentsCatalog';
+import { colors } from '@/theme';
 
 interface ComponentGateProps {
   code: string;
@@ -27,8 +28,8 @@ export function ComponentGate({
 
   if (!workspaceReady || !componentsReady) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }

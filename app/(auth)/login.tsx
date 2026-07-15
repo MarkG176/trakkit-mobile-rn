@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +9,8 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import { AppText, Button, Input } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export default function LoginScreen() {
   const { signInWithOtp, signInWithGoogle, verifyOtp } = useAuth();
@@ -79,86 +78,83 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-white"
+      style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerClassName="flex-grow justify-center px-6 py-12">
-        <Text className="mb-2 text-center text-3xl font-bold text-slate-900">TraKKiT</Text>
-        <Text className="mb-8 text-center text-slate-500">Field sales & merchandising</Text>
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
+          paddingHorizontal: spacing['2xl'],
+          paddingVertical: spacing['3xl'],
+        }}
+      >
+        <AppText variant="h1" style={{ textAlign: 'center', marginBottom: spacing.sm }}>
+          TraKKiT
+        </AppText>
+        <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing['3xl'] }}>
+          Field sales & merchandising
+        </AppText>
 
         {!otpSent ? (
           <>
-            <Text className="mb-1 text-sm font-medium text-slate-700">Email</Text>
-            <TextInput
-              className="mb-4 rounded-xl border border-slate-300 px-4 py-3 text-slate-900"
+            <Input
+              label="Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="you@company.com"
-              placeholderTextColor="#94a3b8"
+              containerStyle={{ marginBottom: spacing.lg }}
             />
-            <TouchableOpacity
-              className="rounded-xl bg-blue-600 py-4"
-              onPress={handleSendOtp}
-              disabled={loading || googleLoading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text className="text-center font-semibold text-white">Send login code</Text>
-              )}
-            </TouchableOpacity>
+            <Button onPress={handleSendOtp} loading={loading} disabled={googleLoading}>
+              Send login code
+            </Button>
 
-            <View className="my-6 flex-row items-center">
-              <View className="h-px flex-1 bg-slate-200" />
-              <Text className="mx-3 text-xs uppercase text-slate-400">Or continue with</Text>
-              <View className="h-px flex-1 bg-slate-200" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing['2xl'] }}>
+              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+              <AppText variant="secondary" style={{ marginHorizontal: spacing.md, textTransform: 'uppercase' }}>
+                Or continue with
+              </AppText>
+              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
             </View>
 
-            <TouchableOpacity
-              className="flex-row items-center justify-center rounded-xl border border-slate-300 bg-white py-4"
-              onPress={handleGoogleSignIn}
-              disabled={loading || googleLoading}
-            >
-              {googleLoading ? (
-                <ActivityIndicator color="#2563eb" />
-              ) : (
-                <>
-                  <Text className="mr-2 text-lg font-bold text-blue-600">G</Text>
-                  <Text className="font-semibold text-slate-800">Sign in with Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
+            <Button variant="secondary" onPress={handleGoogleSignIn} loading={googleLoading} disabled={loading}>
+              Sign in with Google
+            </Button>
           </>
         ) : (
           <>
-            <Text className="mb-4 text-center text-slate-600">
+            <AppText style={{ textAlign: 'center', marginBottom: spacing.lg }}>
               Enter the 6-digit code sent to {email}
-            </Text>
+            </AppText>
             <TextInput
-              className="mb-4 rounded-xl border border-slate-300 px-4 py-3 text-center text-2xl tracking-widest text-slate-900"
+              style={{
+                height: 44,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                marginBottom: spacing.lg,
+                textAlign: 'center',
+                fontSize: 24,
+                letterSpacing: 8,
+                color: colors.foreground,
+                fontFamily: 'Roboto_400Regular',
+              }}
               value={otp}
               onChangeText={setOtp}
               keyboardType="number-pad"
               maxLength={6}
               placeholder="000000"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.secondaryForeground}
             />
-            <TouchableOpacity
-              className="mb-3 rounded-xl bg-blue-600 py-4"
-              onPress={handleVerifyOtp}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text className="text-center font-semibold text-white">Verify code</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setOtpSent(false)}>
-              <Text className="text-center text-blue-600">Use a different email</Text>
-            </TouchableOpacity>
+            <Button onPress={handleVerifyOtp} loading={loading} style={{ marginBottom: spacing.md }}>
+              Verify code
+            </Button>
+            <Button variant="ghost" onPress={() => setOtpSent(false)}>
+              Use a different email
+            </Button>
           </>
         )}
       </ScrollView>

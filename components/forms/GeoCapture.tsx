@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { getCurrentLocation } from '@/utils/location';
 import { formatDistance, calculateDistanceBetween } from '@/utils/distanceCalculator';
 import { PermissionGuidance } from '@/components/PermissionGuidance';
+import { AppText, Badge } from '@/components/ui';
+import { colors, radius, spacing } from '@/theme';
 
 interface GeoCaptureProps {
   targetLat?: number;
@@ -42,9 +44,19 @@ export function GeoCapture({ targetLat, targetLon, onLocation }: GeoCaptureProps
 
   if (loading) {
     return (
-      <View className="mb-4 flex-row items-center gap-2 rounded-xl bg-slate-50 p-3">
-        <ActivityIndicator size="small" color="#2563eb" />
-        <Text className="text-sm text-slate-600">Capturing location...</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          marginBottom: spacing.lg,
+          borderRadius: radius.lg,
+          backgroundColor: colors.muted,
+          padding: spacing.md,
+        }}
+      >
+        <ActivityIndicator size="small" color={colors.primary} />
+        <AppText variant="secondary">Capturing location...</AppText>
       </View>
     );
   }
@@ -55,15 +67,24 @@ export function GeoCapture({ targetLat, targetLon, onLocation }: GeoCaptureProps
 
   if (error) {
     return (
-      <View className="mb-4 rounded-xl bg-red-50 p-3">
-        <Text className="text-sm text-red-700">{error}</Text>
+      <View style={{ marginBottom: spacing.lg }}>
+        <Badge variant="destructive">{error}</Badge>
       </View>
     );
   }
 
   return (
-    <View className="mb-4 rounded-xl bg-green-50 p-3">
-      <Text className="text-sm text-green-800">Location captured{distance ? ` — ${distance} from target` : ''}</Text>
+    <View
+      style={{
+        marginBottom: spacing.lg,
+        borderRadius: radius.lg,
+        backgroundColor: colors.primaryLight,
+        padding: spacing.md,
+      }}
+    >
+      <AppText style={{ color: colors.primary }}>
+        Location captured{distance ? ` — ${distance} from target` : ''}
+      </AppText>
     </View>
   );
 }

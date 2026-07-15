@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Alert, View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { FormField } from '@/components/forms/FormField';
+import {
+  Screen,
+  PageHeader,
+  Button,
+  SelectCard,
+  AppText,
+  CenteredScreen,
+  LoadingSpinner,
+  EmptyMessage,
+} from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 interface SurveyQuestion {
   id: string;
@@ -72,39 +83,38 @@ export default function SurveysScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color="#2563eb" />
-      </View>
+      <CenteredScreen>
+        <LoadingSpinner />
+      </CenteredScreen>
     );
   }
 
   if (!questions.length) {
     return (
       <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-        <View className="flex-1 items-center justify-center p-6">
-          <Text className="text-slate-600">No active survey for this workspace.</Text>
-        </View>
+        <CenteredScreen>
+          <EmptyMessage>No active survey for this workspace.</EmptyMessage>
+        </CenteredScreen>
       </ComponentGate>
     );
   }
 
   return (
     <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-2 text-sm text-slate-500">
+      <Screen scroll>
+        <AppText variant="secondary" style={{ marginBottom: spacing.sm }}>
           Question {step + 1} of {questions.length}
-        </Text>
-        <Text className="mb-4 text-lg font-bold text-slate-900">{current.question_text}</Text>
+        </AppText>
+        <PageHeader title={current.question_text} />
 
         {current.question_type === 'multiple_choice' && current.options ? (
           current.options.map((opt) => (
-            <TouchableOpacity
+            <SelectCard
               key={opt}
-              className={`mb-2 rounded-xl border p-4 ${answers[current.id] === opt ? 'border-blue-500 bg-blue-50' : 'border-slate-200'}`}
+              label={opt}
+              selected={answers[current.id] === opt}
               onPress={() => setAnswers((a) => ({ ...a, [current.id]: opt }))}
-            >
-              <Text>{opt}</Text>
-            </TouchableOpacity>
+            />
           ))
         ) : (
           <FormField
@@ -115,31 +125,28 @@ export default function SurveysScreen() {
           />
         )}
 
-        <View className="mt-4 flex-row gap-3">
-          {step > 0 && (
-            <TouchableOpacity className="flex-1 rounded-xl border border-slate-300 py-3" onPress={() => setStep(step - 1)}>
-              <Text className="text-center font-medium">Back</Text>
-            </TouchableOpacity>
-          )}
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
+          {step > 0 ? (
+            <Button variant="secondary" style={{ flex: 1 }} onPress={() => setStep(step - 1)}>
+              Back
+            </Button>
+          ) : null}
           {step < questions.length - 1 ? (
-            <TouchableOpacity
-              className="flex-1 rounded-xl bg-blue-600 py-3"
-              onPress={() => setStep(step + 1)}
+            <Button style={{ flex: 1 }} onPress={() => setStep(step + 1)} disabled={!answers[current.id]}>
+              Next
+            </Button>
+          ) : (
+            <Button
+              style={{ flex: 1, backgroundColor: colors.success }}
+              onPress={submitSurvey}
+              loading={submitting}
               disabled={!answers[current.id]}
             >
-              <Text className="text-center font-semibold text-white">Next</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity className="flex-1 rounded-xl bg-green-600 py-3" onPress={submitSurvey} disabled={submitting}>
-              {submitting ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text className="text-center font-semibold text-white">Submit</Text>
-              )}
-            </TouchableOpacity>
+              Submit
+            </Button>
           )}
         </View>
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

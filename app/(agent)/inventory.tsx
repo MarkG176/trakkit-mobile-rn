@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
+import { supabase } from '@/lib/supabase';
+import {
+  Screen,
+  PageHeader,
+  LoadingSpinner,
+  EmptyMessage,
+  ListItemCard,
+  AppText,
+} from '@/components/ui';
+import { colors } from '@/theme';
 
 export default function InventoryScreen() {
   const { user } = useAuth();
@@ -25,21 +33,22 @@ export default function InventoryScreen() {
 
   return (
     <ComponentGate code="CRM-0093" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Inventory</Text>
+      <Screen scroll>
+        <PageHeader title="Inventory" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : items.length === 0 ? (
-          <Text className="text-slate-600">No assigned stock.</Text>
+          <EmptyMessage>No assigned stock.</EmptyMessage>
         ) : (
           items.map((item) => (
-            <View key={item.id} className="mb-3 flex-row items-center justify-between rounded-xl border border-slate-200 p-4">
-              <Text className="font-medium text-slate-900">{item.name ?? 'Product'}</Text>
-              <Text className="font-bold text-blue-600">×{item.amount_issued}</Text>
-            </View>
+            <ListItemCard
+              key={item.id}
+              title={item.name ?? 'Product'}
+              trailing={<AppText style={{ fontWeight: '700', color: colors.primary }}>×{item.amount_issued}</AppText>}
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Alert } from 'react-native';
 import { FormField } from '@/components/forms/FormField';
 import { GeoCapture } from '@/components/forms/GeoCapture';
 import { ComponentGate } from '@/components/ComponentGate';
@@ -7,6 +7,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { formatCurrencySimple } from '@/utils/currency';
+import { Screen, PageHeader, Button, AppText } from '@/components/ui';
+import { spacing } from '@/theme';
 
 export default function RecordSaleScreen() {
   const { user } = useAuth();
@@ -57,8 +59,8 @@ export default function RecordSaleScreen() {
 
   return (
     <ComponentGate code="CRM-0094" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Record Sale</Text>
+      <Screen scroll>
+        <PageHeader title="Record Sale" />
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
         <FormField
@@ -67,18 +69,18 @@ export default function RecordSaleScreen() {
           onChangeText={setPrice}
           keyboardType="decimal-pad"
         />
-        {price && quantity && (
-          <Text className="mb-4 text-sm text-slate-600">
+        {price && quantity ? (
+          <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
             Total: {formatCurrencySimple((parseInt(quantity, 10) || 1) * parseFloat(price || '0'), currency)}
-          </Text>
-        )}
+          </AppText>
+        ) : null}
         <FormField label="Customer name (optional)" value={customerName} onChangeText={setCustomerName} />
         <FormField label="Customer phone (optional)" value={customerPhone} onChangeText={setCustomerPhone} keyboardType="phone-pad" />
         <GeoCapture onLocation={(a, b) => { setLat(a); setLon(b); }} />
-        <TouchableOpacity className="rounded-xl bg-blue-600 py-4" onPress={submit} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-center font-semibold text-white">Submit sale</Text>}
-        </TouchableOpacity>
-      </ScrollView>
+        <Button onPress={submit} loading={loading}>
+          Submit sale
+        </Button>
+      </Screen>
     </ComponentGate>
   );
 }

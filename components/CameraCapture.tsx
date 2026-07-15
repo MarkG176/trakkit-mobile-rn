@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { PermissionGuidance } from '@/components/PermissionGuidance';
+import { Button } from '@/components/ui';
+import { radius, spacing } from '@/theme';
 
 interface CameraCaptureProps {
   onCapture: (uri: string) => void;
@@ -39,12 +41,19 @@ export function CameraCapture({ onCapture, label = 'Take photo' }: CameraCapture
 
   return (
     <View>
-      {preview && (
-        <Image source={{ uri: preview }} className="mb-3 h-32 w-32 self-center rounded-full" />
-      )}
-      <TouchableOpacity className="rounded-xl bg-blue-600 px-4 py-3" onPress={capture}>
-        <Text className="text-center font-semibold text-white">{label}</Text>
-      </TouchableOpacity>
+      {preview ? (
+        <Image
+          source={{ uri: preview }}
+          style={{
+            width: 128,
+            height: 128,
+            borderRadius: radius.full,
+            alignSelf: 'center',
+            marginBottom: spacing.md,
+          }}
+        />
+      ) : null}
+      <Button onPress={capture}>{label}</Button>
     </View>
   );
 }

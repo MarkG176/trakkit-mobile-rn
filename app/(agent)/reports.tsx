@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Alert } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -7,6 +7,8 @@ import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { FormField } from '@/components/forms/FormField';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
+import { Screen, PageHeader, Button, Card, AppText, EmptyMessage } from '@/components/ui';
+import { spacing } from '@/theme';
 
 function ReportForm({ title, table, onDone }: { title: string; table: string; onDone: () => void }) {
   const { user } = useAuth();
@@ -33,13 +35,13 @@ function ReportForm({ title, table, onDone }: { title: string; table: string; on
   };
 
   return (
-    <View className="mb-4 rounded-xl border border-slate-200 bg-white p-4">
-      <Text className="mb-3 font-semibold text-slate-900">{title}</Text>
+    <Card style={{ marginBottom: spacing.lg }}>
+      <AppText style={{ fontWeight: '600', marginBottom: spacing.md }}>{title}</AppText>
       <FormField label="Notes / summary" value={notes} onChangeText={setNotes} multiline />
-      <TouchableOpacity className="rounded-xl bg-blue-600 py-3" onPress={submit} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-center font-semibold text-white">Submit</Text>}
-      </TouchableOpacity>
-    </View>
+      <Button onPress={submit} loading={loading}>
+        Submit
+      </Button>
+    </Card>
   );
 }
 
@@ -60,16 +62,16 @@ export default function ReportsScreen() {
 
   return (
     <ComponentGate code="CRM-0099" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-slate-50 px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Reports</Text>
+      <Screen scroll>
+        <PageHeader title="Reports" />
         {reports.length === 0 ? (
-          <Text className="text-slate-600">No reports enabled for this project.</Text>
+          <EmptyMessage>No reports enabled for this project.</EmptyMessage>
         ) : (
           reports.map((r) => (
             <ReportForm key={r.code} title={r.title} table={r.table} onDone={() => {}} />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

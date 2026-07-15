@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
 import { formatCurrencySimple } from '@/utils/currency';
 import { workspaceService } from '@/services/workspaceService';
+import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { colors } from '@/theme';
 
 export default function SalesScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -29,21 +30,24 @@ export default function SalesScreen() {
 
   return (
     <ComponentGate code="CRM-0121">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Sales</Text>
+      <Screen scroll>
+        <PageHeader title="Sales" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
           sales.map((s) => (
-            <View key={s.id} className="mb-2 flex-row justify-between rounded-xl border border-slate-200 p-4">
-              <Text className="text-slate-900">{s.product_name ?? 'Sale'}</Text>
-              <Text className="font-semibold text-blue-600">
-                {formatCurrencySimple(s.total_price ?? 0, currency)}
-              </Text>
-            </View>
+            <ListItemCard
+              key={s.id}
+              title={s.product_name ?? 'Sale'}
+              trailing={
+                <AppText style={{ fontWeight: '600', color: colors.primary }}>
+                  {formatCurrencySimple(s.total_price ?? 0, currency)}
+                </AppText>
+              }
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { offlineQueue } from '@/services/offlineQueue';
+import { AppText } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export function SyncStatusBar() {
   const [isOnline, setIsOnline] = useState(true);
@@ -26,13 +28,17 @@ export function SyncStatusBar() {
 
   return (
     <View
-      className={`px-4 py-2 ${isOnline ? 'bg-amber-500' : 'bg-red-600'}`}
+      style={{
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm,
+        backgroundColor: isOnline ? colors.warning : colors.destructive,
+      }}
     >
-      <Text className="text-center text-xs font-medium text-white">
+      <AppText style={{ textAlign: 'center', color: colors.primaryForeground, fontSize: 12, fontWeight: '500' }}>
         {!isOnline
           ? 'Offline — changes will sync when connected'
           : `Syncing ${pendingCount} pending change${pendingCount === 1 ? '' : 's'}...`}
-      </Text>
+      </AppText>
     </View>
   );
 }

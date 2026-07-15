@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   Image,
@@ -10,6 +8,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
+import { ChevronDown, Menu, User } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -20,6 +19,8 @@ import { getCurrentLocation } from '@/utils/location';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
 import { getLastCheckInPhotoUrl, uploadCheckInPhoto } from '@/utils/agentPhotos';
+import { AppText, Button, Card, IconButton } from '@/components/ui';
+import { colors, radius, spacing } from '@/theme';
 
 interface AttendanceProfile {
   displayName: string;
@@ -54,7 +55,6 @@ function StatusItem({
   icon,
   iconColor,
   label,
-  muted,
 }: {
   icon: string;
   iconColor: string;
@@ -62,9 +62,9 @@ function StatusItem({
   muted?: boolean;
 }) {
   return (
-    <View className="flex-row items-center gap-1">
-      <Text style={{ color: iconColor, fontSize: 15 }}>{icon}</Text>
-      <Text className={`text-[13px] ${muted ? 'text-slate-400' : 'text-slate-500'}`}>{label}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+      <AppText style={{ color: iconColor, fontSize: 15 }}>{icon}</AppText>
+      <AppText variant="secondary" style={{ fontSize: 13 }}>{label}</AppText>
     </View>
   );
 }
@@ -177,14 +177,10 @@ export function RecordAttendanceForm() {
     loadProfile();
   }, [loadProfile, isCheckedIn]);
 
-  const startCheckIn = (status: 'checked_in' | 'checked_out') => {
-    setPendingStatus(status);
-    setShowCamera(true);
-  };
-
   const handleAvatarPress = () => {
     if (loading) return;
-    startCheckIn(isCheckedIn ? 'checked_out' : 'checked_in');
+    setPendingStatus(isCheckedIn ? 'checked_out' : 'checked_in');
+    setShowCamera(true);
   };
 
   const handleCapture = async (uri: string) => {
@@ -232,15 +228,15 @@ export function RecordAttendanceForm() {
   if (showCamera) {
     return (
       <ComponentGate code="CRM-0026">
-        <View className="w-full rounded-2xl bg-white p-5">
-          <Text className="mb-3 text-center text-[15px] font-medium text-slate-800">
+        <Card>
+          <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing.md }}>
             Take a selfie to {pendingStatus === 'checked_in' ? 'check in' : 'check out'}
-          </Text>
+          </AppText>
           <CameraCapture onCapture={handleCapture} label="Capture selfie" />
-          <TouchableOpacity className="mt-3" onPress={() => setShowCamera(false)}>
-            <Text className="text-center text-slate-500">Cancel</Text>
-          </TouchableOpacity>
-        </View>
+          <Button variant="ghost" onPress={() => setShowCamera(false)} style={{ marginTop: spacing.md }}>
+            Cancel
+          </Button>
+        </Card>
       </ComponentGate>
     );
   }
@@ -254,84 +250,111 @@ export function RecordAttendanceForm() {
 
   return (
     <ComponentGate code="CRM-0026">
-      <View className="w-full rounded-2xl bg-white px-5 py-6">
-        <View className="mb-8 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-1">
-            <Text className="text-[15px] font-medium text-slate-900">{profile.teamName}</Text>
-            <Text className="text-base text-slate-400">▾</Text>
+      <Card style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing['2xl'] }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: spacing['3xl'],
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <AppText style={{ fontWeight: '500' }}>{profile.teamName}</AppText>
+            <ChevronDown size={16} color={colors.secondaryForeground} />
           </View>
-          <TouchableOpacity
+          <IconButton
             accessibilityLabel="Menu"
-            className="p-1.5"
             onPress={() => router.push('/(agent)/more')}
+            style={{ backgroundColor: 'transparent' }}
           >
-            <Text className="text-xl text-slate-900">☰</Text>
-          </TouchableOpacity>
+            <Menu size={20} color={colors.foreground} />
+          </IconButton>
         </View>
 
-        <View className="items-center">
+        <View style={{ alignItems: 'center' }}>
           <Pressable
             accessibilityLabel={isCheckedIn ? 'Check out' : 'Check in'}
             accessibilityHint="Opens camera to capture a selfie"
-            className="mb-5"
+            style={{ marginBottom: spacing.xl }}
             disabled={loading}
             onPress={handleAvatarPress}
           >
-            <View className="relative h-[108px] w-[108px] items-center justify-center overflow-hidden rounded-full bg-blue-50">
+            <View
+              style={{
+                width: 108,
+                height: 108,
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                borderRadius: radius.full,
+                backgroundColor: colors.accent,
+              }}
+            >
               {profile.photoUrl ? (
-                <Image
-                  source={{ uri: profile.photoUrl }}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: profile.photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
               ) : (
-                <Text className="text-5xl text-blue-400">👤</Text>
+                <User size={48} color={colors.secondaryForeground} />
               )}
-              {loading && (
-                <View className="absolute inset-0 items-center justify-center bg-black/30">
-                  <ActivityIndicator color="#ffffff" />
+              {loading ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <ActivityIndicator color={colors.primaryForeground} />
                 </View>
-              )}
+              ) : null}
             </View>
           </Pressable>
 
           {profileLoading ? (
-            <ActivityIndicator className="mb-6" color="#2563eb" />
+            <ActivityIndicator color={colors.primary} style={{ marginBottom: spacing['2xl'] }} />
           ) : (
             <>
-              <Text className="mb-1 text-center text-[22px] font-medium text-slate-900">
+              <AppText variant="h2" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
                 {profile.displayName}
-              </Text>
-              <Text className="mb-6 text-center text-[15px] font-medium text-slate-900">
+              </AppText>
+              <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing['2xl'] }}>
                 {profile.teamLabel}
-              </Text>
+              </AppText>
             </>
           )}
 
-          <View className="mb-5 h-px w-full bg-slate-200" />
+          <View style={{ height: 1, width: '100%', backgroundColor: colors.border, marginBottom: spacing.xl }} />
 
-          <View className="flex-row flex-wrap items-center justify-center gap-x-2.5 gap-y-2">
-            <StatusItem icon="↪" iconColor="#16a34a" label={checkInLabel} />
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing.sm,
+            }}
+          >
+            <StatusItem icon="↪" iconColor={colors.success} label={checkInLabel} />
             {profile.breakLabel ? (
               <>
-                <Text className="text-slate-300">·</Text>
-                <StatusItem icon="☕" iconColor="#d97706" label={`Break ${profile.breakLabel}`} />
+                <AppText style={{ color: colors.border }}>·</AppText>
+                <StatusItem icon="☕" iconColor={colors.warning} label={`Break ${profile.breakLabel}`} />
               </>
             ) : null}
-            <Text className="text-slate-300">·</Text>
-            <StatusItem
-              icon="↩"
-              iconColor="#94a3b8"
-              label={checkOutLabel}
-              muted={!profile.checkOutTime}
-            />
+            <AppText style={{ color: colors.border }}>·</AppText>
+            <StatusItem icon="↩" iconColor={colors.secondaryForeground} label={checkOutLabel} />
           </View>
 
-          <Text className="mt-4 text-center text-xs text-slate-400">
+          <AppText variant="secondary" style={{ marginTop: spacing.lg, textAlign: 'center' }}>
             Tap photo to {isCheckedIn ? 'check out' : 'check in'}
-          </Text>
+          </AppText>
         </View>
-      </View>
+      </Card>
     </ComponentGate>
   );
 }

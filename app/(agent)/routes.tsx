@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import {
+  Screen,
+  PageHeader,
+  LoadingSpinner,
+  EmptyMessage,
+  ListItemCard,
+  AppText,
+} from '@/components/ui';
+import { colors } from '@/theme';
 
 interface RouteStop {
   id: string;
@@ -37,23 +45,27 @@ export default function RoutesScreen() {
 
   return (
     <ComponentGate code="CRM-0098" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Today&apos;s Route</Text>
+      <Screen scroll>
+        <PageHeader title="Today's Route" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : stops.length === 0 ? (
-          <Text className="text-slate-600">No route assigned for today.</Text>
+          <EmptyMessage>No route assigned for today.</EmptyMessage>
         ) : (
           stops.map((stop, i) => (
-            <View key={stop.id} className="mb-3 rounded-xl border border-slate-200 p-4">
-              <Text className="font-semibold text-slate-900">
-                {i + 1}. {stop.area_name ?? 'Stop'}
-              </Text>
-              <Text className="mt-1 text-xs capitalize text-blue-600">{stop.status ?? 'pending'}</Text>
-            </View>
+            <ListItemCard
+              key={stop.id}
+              title={`${i + 1}. ${stop.area_name ?? 'Stop'}`}
+              subtitle={(stop.status ?? 'pending').replace(/_/g, ' ')}
+              trailing={
+                <AppText variant="secondary" style={{ textTransform: 'capitalize', color: colors.primary }}>
+                  {stop.status ?? 'pending'}
+                </AppText>
+              }
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

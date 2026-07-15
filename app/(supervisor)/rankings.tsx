@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
+import { View } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export default function RankingsScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -30,22 +32,25 @@ export default function RankingsScreen() {
 
   return (
     <ComponentGate code="CRM-0122">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Rankings</Text>
+      <Screen scroll>
+        <PageHeader title="Rankings" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
           ranks.map((r, i) => (
-            <View key={r.agent_id} className="mb-2 flex-row items-center rounded-xl border border-slate-200 p-4">
-              <Text className="mr-3 text-lg font-bold text-blue-600">#{i + 1}</Text>
-              <View className="flex-1">
-                <Text className="font-medium text-slate-900">{r.current_rank ?? 'Agent'}</Text>
-                <Text className="text-sm text-slate-500">{r.total_points ?? 0} pts</Text>
-              </View>
-            </View>
+            <ListItemCard
+              key={r.agent_id}
+              title={r.current_rank ?? 'Agent'}
+              subtitle={`${r.total_points ?? 0} pts`}
+              trailing={
+                <AppText variant="h3" style={{ color: colors.primary, marginRight: spacing.sm }}>
+                  #{i + 1}
+                </AppText>
+              }
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

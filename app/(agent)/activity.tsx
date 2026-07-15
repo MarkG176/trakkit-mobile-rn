@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
+import { supabase } from '@/lib/supabase';
+import {
+  Screen,
+  PageHeader,
+  LoadingSpinner,
+  EmptyMessage,
+  ListItemCard,
+} from '@/components/ui';
 
 export default function ActivityScreen() {
   const { user } = useAuth();
@@ -27,21 +33,22 @@ export default function ActivityScreen() {
 
   return (
     <ComponentGate code="CRM-0091">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Activity</Text>
+      <Screen scroll>
+        <PageHeader title="Activity" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : items.length === 0 ? (
-          <Text className="text-slate-600">No activity yet.</Text>
+          <EmptyMessage>No activity yet.</EmptyMessage>
         ) : (
           items.map((item) => (
-            <View key={item.id} className="mb-2 rounded-xl border border-slate-100 p-3">
-              <Text className="font-medium capitalize text-slate-900">{item.action.replace('_', ' ')}</Text>
-              <Text className="text-xs text-slate-500">{new Date(item.created_at).toLocaleString()}</Text>
-            </View>
+            <ListItemCard
+              key={item.id}
+              title={item.action.replace(/_/g, ' ')}
+              subtitle={new Date(item.created_at).toLocaleString()}
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

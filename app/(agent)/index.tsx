@@ -5,19 +5,20 @@ import { RecordAttendanceForm } from '@/components/attendance/RecordAttendanceFo
 import { WorkHoursCard } from '@/components/dashboard/WorkHoursCard';
 import { UpcomingSchedule } from '@/components/dashboard/UpcomingSchedule';
 import { ComponentGate } from '@/components/ComponentGate';
+import { colors, spacing } from '@/theme';
 
 export default function AgentDashboard() {
   return (
     <ComponentGate code="CRM-0089" redirectTo="/(agent)/profile">
-      <View className="flex-1 bg-slate-50">
+      <View style={{ flex: 1, backgroundColor: colors.muted }}>
         <TopBar />
-        <ScrollView className="flex-1">
-          <View className="px-4 py-4">
+        <ScrollView style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
             <RecordAttendanceForm />
           </View>
           <QuickActions />
           <UpcomingSchedule />
-          <View className="px-4 pb-8">
+          <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing['3xl'] }}>
             <WorkHoursCard />
           </View>
         </ScrollView>

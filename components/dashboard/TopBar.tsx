@@ -1,15 +1,28 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher';
 import { useAuth } from '@/providers/AuthProvider';
+import { AppText } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export function TopBar() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-row items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        backgroundColor: colors.card,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+      }}
+    >
       <View>
-        <Text className="text-lg font-bold text-slate-900">TraKKiT</Text>
-        <Text className="text-xs text-slate-500">{user?.email}</Text>
+        <AppText variant="h3">TraKKiT</AppText>
+        <AppText variant="secondary">{user?.email}</AppText>
       </View>
       <WorkspaceSwitcher />
     </View>

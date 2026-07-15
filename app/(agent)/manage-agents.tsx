@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner, ListItemCard } from '@/components/ui';
 
 export default function ManageAgentsScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -15,8 +15,7 @@ export default function ManageAgentsScreen() {
       const { data } = await supabase
         .from('team_members')
         .select('id, agent_id')
-        .eq('workspace_id', currentWorkspaceId)
-        .eq('is_active', true);
+        .eq('workspace_id', currentWorkspaceId);
 
       setMembers(data ?? []);
       setLoading(false);
@@ -25,19 +24,20 @@ export default function ManageAgentsScreen() {
   }, [currentWorkspaceId]);
 
   return (
-    <ComponentGate code="CRM-0111" redirectTo="/(agent)/more">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Manage Agents</Text>
+    <ComponentGate code="CRM-0111">
+      <Screen scroll>
+        <PageHeader title="Manage Agents" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
           members.map((m) => (
-            <View key={m.id} className="mb-2 rounded-xl border border-slate-200 p-4">
-              <Text className="font-medium text-slate-900">Agent {m.agent_id?.slice(0, 8) ?? 'Unknown'}</Text>
-            </View>
+            <ListItemCard
+              key={m.id}
+              title={`Agent ${m.agent_id?.slice(0, 8) ?? 'Unknown'}`}
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

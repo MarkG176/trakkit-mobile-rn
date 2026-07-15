@@ -7,10 +7,12 @@ import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
 import { useUserRole } from '@/hooks/useUserRole';
+import { colors } from '@/theme';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -35,8 +37,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (loading || (user && roleLoading)) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -46,18 +48,20 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WorkspaceProvider>
-          <AgentStatusProvider>
-            <SyncStatusBar />
-            <BackgroundLocationTracker />
-            <AuthGate>
-              <Slot />
-            </AuthGate>
-          </AgentStatusProvider>
-        </WorkspaceProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <WorkspaceProvider>
+            <AgentStatusProvider>
+              <SyncStatusBar />
+              <BackgroundLocationTracker />
+              <AuthGate>
+                <Slot />
+              </AuthGate>
+            </AgentStatusProvider>
+          </WorkspaceProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

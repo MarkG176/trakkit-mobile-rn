@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components/ui';
 
 export default function InboxScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -27,21 +27,22 @@ export default function InboxScreen() {
 
   return (
     <ComponentGate code="CRM-0126">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Inbox</Text>
+      <Screen scroll>
+        <PageHeader title="Inbox" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : messages.length === 0 ? (
-          <Text className="text-slate-600">No messages.</Text>
+          <EmptyMessage>No messages.</EmptyMessage>
         ) : (
           messages.map((m) => (
-            <View key={m.id} className="mb-2 rounded-xl border border-slate-200 p-4">
-              <Text className="text-slate-900">{m.message}</Text>
-              <Text className="text-xs text-slate-500">{new Date(m.created_at).toLocaleString()}</Text>
-            </View>
+            <ListItemCard
+              key={m.id}
+              title={m.message ?? ''}
+              subtitle={new Date(m.created_at).toLocaleString()}
+            />
           ))
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }

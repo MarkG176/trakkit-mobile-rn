@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { ComponentGate } from '@/components/ComponentGate';
+import { AppText, Card } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export function WorkHoursCard() {
   const { user } = useAuth();
@@ -42,11 +44,13 @@ export function WorkHoursCard() {
 
   return (
     <ComponentGate code="CRM-0053">
-      <View className="rounded-xl border border-slate-200 bg-white p-4">
-        <Text className="mb-2 text-sm font-semibold text-slate-700">Work Hours Today</Text>
-        <Text className="text-2xl font-bold text-blue-600">{todayHours.toFixed(1)}h</Text>
-        <Text className="mt-1 text-xs capitalize text-slate-500">Status: {status.replace('_', ' ')}</Text>
-      </View>
+      <Card>
+        <AppText style={{ marginBottom: spacing.sm, fontWeight: '500' }}>Work Hours Today</AppText>
+        <AppText variant="h2" style={{ color: colors.primary }}>{todayHours.toFixed(1)}h</AppText>
+        <AppText variant="secondary" style={{ marginTop: 4, textTransform: 'capitalize' }}>
+          Status: {status.replace('_', ' ')}
+        </AppText>
+      </Card>
     </ComponentGate>
   );
 }

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Alert } from 'react-native';
 import { FormField } from '@/components/forms/FormField';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
+import { Screen, PageHeader, Button } from '@/components/ui';
 
 export default function SupportTicketScreen() {
   const { user } = useAuth();
@@ -37,14 +38,14 @@ export default function SupportTicketScreen() {
 
   return (
     <ComponentGate code="CRM-0110">
-      <ScrollView className="flex-1 bg-white px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Support Ticket</Text>
+      <Screen scroll>
+        <PageHeader title="Support Ticket" />
         <FormField label="Subject" value={subject} onChangeText={setSubject} />
         <FormField label="Message" value={message} onChangeText={setMessage} multiline numberOfLines={5} />
-        <TouchableOpacity className="rounded-xl bg-blue-600 py-4" onPress={submit} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-center font-semibold text-white">Submit ticket</Text>}
-        </TouchableOpacity>
-      </ScrollView>
+        <Button onPress={submit} loading={loading}>
+          Submit ticket
+        </Button>
+      </Screen>
     </ComponentGate>
   );
 }

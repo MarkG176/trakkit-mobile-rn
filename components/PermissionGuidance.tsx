@@ -1,4 +1,6 @@
-import { View, Text, TouchableOpacity, Linking, Platform } from 'react-native';
+import { View, Linking, Platform } from 'react-native';
+import { AppText, Button, Card } from '@/components/ui';
+import { badge, colors, spacing } from '@/theme';
 
 interface PermissionGuidanceProps {
   type: 'location' | 'camera' | 'background-location';
@@ -32,19 +34,19 @@ export function PermissionGuidance({ type, onRetry }: PermissionGuidanceProps) {
   };
 
   return (
-    <View className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <Text className="mb-1 font-semibold text-amber-900">{msg.title}</Text>
-      <Text className="mb-3 text-sm text-amber-800">{msg.body}</Text>
-      <View className="flex-row gap-2">
-        {onRetry && (
-          <TouchableOpacity className="flex-1 rounded-lg bg-amber-600 px-3 py-2" onPress={onRetry}>
-            <Text className="text-center text-sm font-medium text-white">Try again</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity className="flex-1 rounded-lg border border-amber-300 px-3 py-2" onPress={openSettings}>
-          <Text className="text-center text-sm font-medium text-amber-900">Open settings</Text>
-        </TouchableOpacity>
+    <Card style={{ ...badge.warning, borderColor: colors.warning, marginBottom: spacing.lg }}>
+      <AppText style={{ ...badge.warningText, fontWeight: '600', marginBottom: spacing.xs }}>{msg.title}</AppText>
+      <AppText style={{ ...badge.warningText, marginBottom: spacing.md }}>{msg.body}</AppText>
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        {onRetry ? (
+          <Button variant="primary" onPress={onRetry} style={{ flex: 1 }}>
+            Try again
+          </Button>
+        ) : null}
+        <Button variant="secondary" onPress={openSettings} style={{ flex: 1 }}>
+          Open settings
+        </Button>
       </View>
-    </View>
+    </Card>
   );
 }

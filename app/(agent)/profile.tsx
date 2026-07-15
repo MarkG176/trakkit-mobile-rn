@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { AppText, Card } from '@/components/ui';
+import { badge, colors, spacing } from '@/theme';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
@@ -46,34 +48,42 @@ export default function ProfileScreen() {
     router.replace('/(auth)/login');
   };
 
+  const menuItem = (label: string, onPress: () => void) => (
+    <TouchableOpacity onPress={onPress}>
+      <Card style={{ marginBottom: spacing.md }}>
+        <AppText style={{ fontWeight: '500' }}>{label}</AppText>
+      </Card>
+    </TouchableOpacity>
+  );
+
   return (
     <ComponentGate code="CRM-0090" redirectTo="/(agent)">
-      <ScrollView className="flex-1 bg-slate-50 px-4 py-6">
-        <Text className="mb-1 text-2xl font-bold text-slate-900">{user?.email}</Text>
-        <Text className="mb-6 text-slate-500">Agent profile</Text>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.muted }}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingVertical: spacing['2xl'] }}
+      >
+        <AppText variant="h2" style={{ marginBottom: spacing.xs }}>{user?.email}</AppText>
+        <AppText variant="secondary" style={{ marginBottom: spacing['2xl'] }}>Agent profile</AppText>
 
-        <View className="mb-4 rounded-xl bg-white p-4">
-          <Text className="text-sm text-slate-500">Today&apos;s sales</Text>
-          <Text className="text-2xl font-bold text-blue-600">{salesToday}</Text>
-        </View>
+        <Card style={{ marginBottom: spacing.lg }}>
+          <AppText variant="secondary">Today&apos;s sales</AppText>
+          <AppText variant="h2" style={{ color: colors.primary }}>{salesToday}</AppText>
+        </Card>
 
-        <View className="mb-4 rounded-xl bg-white p-4">
-          <Text className="text-sm text-slate-500">Rank</Text>
-          <Text className="text-xl font-bold text-slate-900">{rank ?? 'Unranked'}</Text>
-          <Text className="text-sm text-slate-600">{points} points</Text>
-        </View>
+        <Card style={{ marginBottom: spacing.lg }}>
+          <AppText variant="secondary">Rank</AppText>
+          <AppText variant="h2">{rank ?? 'Unranked'}</AppText>
+          <AppText variant="secondary">{points} points</AppText>
+        </Card>
 
-        <TouchableOpacity className="mb-3 rounded-xl bg-white p-4" onPress={() => router.push('/(agent)/more')}>
-          <Text className="font-medium text-slate-900">More</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="mb-3 rounded-xl bg-white p-4" onPress={() => router.push('/(agent)/activity')}>
-          <Text className="font-medium text-slate-900">Activity feed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="mb-3 rounded-xl bg-white p-4" onPress={() => router.push('/(agent)/settings')}>
-          <Text className="font-medium text-slate-900">Settings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="rounded-xl bg-red-50 p-4" onPress={handleSignOut}>
-          <Text className="font-medium text-red-700">Sign out</Text>
+        {menuItem('More', () => router.push('/(agent)/more'))}
+        {menuItem('Activity feed', () => router.push('/(agent)/activity'))}
+        {menuItem('Settings', () => router.push('/(agent)/settings'))}
+
+        <TouchableOpacity onPress={handleSignOut}>
+          <Card style={{ ...badge.destructive, borderColor: badge.destructive.backgroundColor }}>
+            <AppText style={badge.destructiveText}>Sign out</AppText>
+          </Card>
         </TouchableOpacity>
       </ScrollView>
     </ComponentGate>

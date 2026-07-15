@@ -1,6 +1,8 @@
 import { Tabs, Redirect } from 'expo-router';
+import { LayoutDashboard, Users, Map, Inbox, BarChart3 } from 'lucide-react-native';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useUserRole } from '@/hooks/useUserRole';
+import { tabBarIcon, tabScreenOptions } from '@/components/navigation/TabIcon';
 
 export default function SupervisorLayout() {
   const { isEnabled, isLoaded } = useProjectComponents();
@@ -12,18 +14,12 @@ export default function SupervisorLayout() {
   const show = (code: string) => !isLoaded || isEnabled(code);
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#64748b',
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: 'Dashboard', tabBarIcon: () => null }} />
-      <Tabs.Screen name="users" options={{ title: 'Users', href: show('CRM-0123') ? undefined : null, tabBarIcon: () => null }} />
-      <Tabs.Screen name="map" options={{ title: 'Map', href: show('CRM-0125') ? undefined : null, tabBarIcon: () => null }} />
-      <Tabs.Screen name="inbox" options={{ title: 'Inbox', href: show('CRM-0126') ? undefined : null, tabBarIcon: () => null }} />
-      <Tabs.Screen name="stats" options={{ title: 'Stats', href: show('CRM-0124') ? undefined : null, tabBarIcon: () => null }} />
+    <Tabs screenOptions={tabScreenOptions}>
+      <Tabs.Screen name="index" options={{ title: 'Dashboard', tabBarIcon: tabBarIcon(LayoutDashboard) }} />
+      <Tabs.Screen name="users" options={{ title: 'Users', href: show('CRM-0123') ? undefined : null, tabBarIcon: tabBarIcon(Users) }} />
+      <Tabs.Screen name="map" options={{ title: 'Map', href: show('CRM-0125') ? undefined : null, tabBarIcon: tabBarIcon(Map) }} />
+      <Tabs.Screen name="inbox" options={{ title: 'Inbox', href: show('CRM-0126') ? undefined : null, tabBarIcon: tabBarIcon(Inbox) }} />
+      <Tabs.Screen name="stats" options={{ title: 'Stats', href: show('CRM-0124') ? undefined : null, tabBarIcon: tabBarIcon(BarChart3) }} />
       <Tabs.Screen name="sales" options={{ href: null }} />
       <Tabs.Screen name="gallery" options={{ href: null }} />
       <Tabs.Screen name="rankings" options={{ href: null }} />

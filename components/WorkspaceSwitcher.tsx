@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Modal,
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { ChevronDown } from 'lucide-react-native';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { AppText, Button, Card } from '@/components/ui';
+import { colors, radius, spacing } from '@/theme';
 
 export function WorkspaceSwitcher() {
   const { userWorkspaces, currentWorkspaceId, switchWorkspace, isLoading } = useWorkspace();
@@ -25,9 +27,9 @@ export function WorkspaceSwitcher() {
 
   if (userWorkspaces.length <= 1) {
     return (
-      <Text className="text-sm font-medium text-slate-600" numberOfLines={1}>
+      <AppText variant="secondary" style={{ fontWeight: '500', maxWidth: 160 }} numberOfLines={1}>
         {currentName}
-      </Text>
+      </AppText>
     );
   }
 
@@ -35,39 +37,62 @@ export function WorkspaceSwitcher() {
     <>
       <TouchableOpacity
         onPress={() => setOpen(true)}
-        className="flex-row items-center rounded-lg bg-slate-100 px-3 py-2"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderRadius: radius.lg,
+          backgroundColor: colors.muted,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+        }}
       >
-        <Text className="text-sm font-semibold text-slate-800" numberOfLines={1}>
+        <AppText style={{ fontWeight: '500', maxWidth: 120 }} numberOfLines={1}>
           {currentName}
-        </Text>
-        <Text className="ml-1 text-slate-500">▾</Text>
+        </AppText>
+        <ChevronDown size={16} color={colors.secondaryForeground} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="max-h-[60%] rounded-t-2xl bg-white p-4">
-            <Text className="mb-3 text-lg font-bold text-slate-900">Switch workspace</Text>
-            {isLoading && <ActivityIndicator className="mb-2" />}
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View
+            style={{
+              maxHeight: '60%',
+              borderTopLeftRadius: radius.lg * 2,
+              borderTopRightRadius: radius.lg * 2,
+              backgroundColor: colors.card,
+              padding: spacing.lg,
+            }}
+          >
+            <AppText variant="h3" style={{ marginBottom: spacing.md }}>
+              Switch workspace
+            </AppText>
+            {isLoading && <ActivityIndicator color={colors.primary} style={{ marginBottom: spacing.sm }} />}
             <FlatList
               data={userWorkspaces}
               keyExtractor={(item) => item.workspace_id ?? item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  className={`mb-2 rounded-xl border p-4 ${
-                    item.workspace_id === currentWorkspaceId
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 bg-white'
-                  }`}
-                  onPress={() => handleSelect(item.workspace_id)}
-                >
-                  <Text className="font-semibold text-slate-900">{item.workspace.name}</Text>
-                  <Text className="text-xs capitalize text-slate-500">{item.role}</Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const selected = item.workspace_id === currentWorkspaceId;
+                return (
+                  <TouchableOpacity
+                    style={{
+                      marginBottom: spacing.sm,
+                      borderRadius: radius.lg,
+                      borderWidth: 1,
+                      borderColor: selected ? colors.primary : colors.border,
+                      backgroundColor: selected ? colors.accent : colors.card,
+                      padding: spacing.lg,
+                    }}
+                    onPress={() => handleSelect(item.workspace_id)}
+                  >
+                    <AppText style={{ fontWeight: '500' }}>{item.workspace.name}</AppText>
+                    <AppText variant="secondary" style={{ textTransform: 'capitalize' }}>{item.role}</AppText>
+                  </TouchableOpacity>
+                );
+              }}
             />
-            <TouchableOpacity className="mt-2 rounded-xl bg-slate-100 p-3" onPress={() => setOpen(false)}>
-              <Text className="text-center font-medium text-slate-700">Cancel</Text>
-            </TouchableOpacity>
+            <Button variant="secondary" onPress={() => setOpen(false)} style={{ marginTop: spacing.sm }}>
+              Cancel
+            </Button>
           </View>
         </View>
       </Modal>

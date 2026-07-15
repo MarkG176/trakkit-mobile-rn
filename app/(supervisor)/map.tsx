@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { AppText, Card } from '@/components/ui';
+import { colors, radius, spacing } from '@/theme';
 
 interface AgentLocation {
   agent_id: string;
@@ -98,9 +100,11 @@ export default function MapScreen() {
 
   return (
     <ComponentGate code="CRM-0125">
-      <View className="flex-1">
+      <View style={{ flex: 1 }}>
         {loading ? (
-          <ActivityIndicator className="flex-1" color="#2563eb" />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         ) : (
           <MapView style={{ flex: 1 }} initialRegion={initialRegion}>
             {locations.map((loc) => (
@@ -113,8 +117,10 @@ export default function MapScreen() {
             ))}
           </MapView>
         )}
-        <View className="absolute bottom-4 left-4 rounded-lg bg-white/90 px-3 py-2">
-          <Text className="text-sm font-medium text-slate-800">{locations.length} agents on map</Text>
+        <View style={{ position: 'absolute', bottom: spacing.lg, left: spacing.lg }}>
+          <Card style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm, opacity: 0.95 }}>
+            <AppText style={{ fontWeight: '500' }}>{locations.length} agents on map</AppText>
+          </Card>
         </View>
       </View>
     </ComponentGate>

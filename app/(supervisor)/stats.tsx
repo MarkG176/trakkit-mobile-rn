@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { supabase } from '@/lib/supabase';
+import { Screen, PageHeader, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
+import { colors } from '@/theme';
 
 export default function StatsScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -38,23 +39,23 @@ export default function StatsScreen() {
 
   return (
     <ComponentGate code="CRM-0124">
-      <ScrollView className="flex-1 bg-slate-50 px-4 py-6">
-        <Text className="mb-4 text-xl font-bold text-slate-900">Stats — Today</Text>
+      <Screen scroll>
+        <PageHeader title="Stats — Today" />
         {loading ? (
-          <ActivityIndicator color="#2563eb" />
+          <LoadingSpinner />
         ) : (
           <>
-            <View className="mb-4 rounded-xl bg-white p-4">
-              <Text className="text-sm text-slate-500">Sales</Text>
-              <Text className="text-3xl font-bold text-blue-600">{salesCount}</Text>
-            </View>
-            <View className="rounded-xl bg-white p-4">
-              <Text className="text-sm text-slate-500">Giveaways</Text>
-              <Text className="text-3xl font-bold text-green-600">{giveawayCount}</Text>
-            </View>
+            <ListItemCard
+              title="Sales"
+              trailing={<AppText variant="h2" style={{ color: colors.primary }}>{salesCount}</AppText>}
+            />
+            <ListItemCard
+              title="Giveaways"
+              trailing={<AppText variant="h2" style={{ color: colors.success }}>{giveawayCount}</AppText>}
+            />
           </>
         )}
-      </ScrollView>
+      </Screen>
     </ComponentGate>
   );
 }
