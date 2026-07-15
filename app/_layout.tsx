@@ -2,15 +2,16 @@ import '../global.css';
 import '@/tasks/backgroundLocation';
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
+import { PermissionRequestProvider } from '@/providers/PermissionRequestProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { AppShell } from '@/components/AppShell';
-import { queryClient } from '@/lib/queryClient';
+import { asyncStoragePersister, queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
 import { LoadingSpinner } from '@/components/ui';
@@ -70,20 +71,25 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AppShell>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: asyncStoragePersister, maxAge: 24 * 60 * 60 * 1000 }}
+        >
           <AuthProvider>
             <WorkspaceProvider>
               <AgentStatusProvider>
-                <BackgroundLocationTracker />
-                <RootFrame>
-                  <AuthGate>
-                    <Slot />
-                  </AuthGate>
-                </RootFrame>
+                <PermissionRequestProvider>
+                  <BackgroundLocationTracker />
+                  <RootFrame>
+                    <AuthGate>
+                      <Slot />
+                    </AuthGate>
+                  </RootFrame>
+                </PermissionRequestProvider>
               </AgentStatusProvider>
             </WorkspaceProvider>
           </AuthProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </AppShell>
     </ThemeProvider>
   );
