@@ -4,6 +4,7 @@ import { MOBILE_COMPONENTS } from '@/data/mobileComponentsCatalog';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
+import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { workspaceService } from '@/services/workspaceService';
 
 export type StatusLog = {
@@ -16,13 +17,6 @@ export interface ExpectedActivity {
   code: string;
   name: string;
   completed: boolean;
-}
-
-export interface ScheduleItem {
-  id: string;
-  time: string;
-  title: string;
-  location: string;
 }
 
 export interface SalesTarget {
@@ -159,10 +153,10 @@ export function useAgentDashboardData() {
   const { user } = useAuth();
   const { currentWorkspaceId, currentWorkspaceLabel, isInitialized } = useWorkspace();
   const { isCheckedIn } = useAgentStatus();
+  const { isEnabled } = useProjectComponents();
 
   const [statusLogs, setStatusLogs] = useState<StatusLog[]>([]);
   const [counts, setCounts] = useState<ActivityCounts>(EMPTY_COUNTS);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [salesTarget, setSalesTarget] = useState<SalesTarget>({ current: 0, target: 10 });
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -175,16 +169,16 @@ export function useAgentDashboardData() {
       MOBILE_COMPONENTS.filter(
         (component) =>
           component.group === 'agent-action' &&
+          isEnabled(component.code) &&
           isActivityVisible(component.code, teamType, inStore),
       ),
-    [teamType, inStore],
+    [teamType, inStore, isEnabled],
   );
 
   const fetchAll = useCallback(async () => {
     if (!user || !currentWorkspaceId) {
       setStatusLogs([]);
       setCounts(EMPTY_COUNTS);
-      setSchedule([]);
       setSalesTarget({ current: 0, target: 10 });
       setUnreadMessages(0);
       setLoading(false);
@@ -207,7 +201,6 @@ export function useAgentDashboardData() {
         interactionsRes,
         dailyReportsRes,
         priceReportsRes,
-        scheduleRes,
         salesTargetRes,
         messagesRes,
       ] = await Promise.all([
@@ -267,13 +260,6 @@ export function useAgentDashboardData() {
           .eq('workspace_id', currentWorkspaceId)
           .gte('created_at', todayIso),
         supabase
-          .from('route_assignments')
-          .select('id, area_name, status, date')
-          .eq('workspace_id', currentWorkspaceId)
-          .eq('agent_id', user.id)
-          .eq('date', todayDate)
-          .limit(5),
-        supabase
           .from('agent_tasks')
           .select('individual_sales_target')
           .eq('agent_id', user.id)
@@ -301,14 +287,6 @@ export function useAgentDashboardData() {
         dailyReports: dailyReportsRes.count ?? 0,
         priceReports: priceReportsRes.count ?? 0,
       });
-      setSchedule(
-        (scheduleRes.data ?? []).map((row) => ({
-          id: row.id,
-          time: 'Today',
-          title: row.area_name ?? 'Visit',
-          location: row.status ?? 'pending',
-        })),
-      );
       setSalesTarget({
         current: salesCount,
         target: salesTargetRes.data?.individual_sales_target ?? 10,
@@ -318,7 +296,6 @@ export function useAgentDashboardData() {
       console.error('Error loading agent dashboard data:', error);
       setStatusLogs([]);
       setCounts(EMPTY_COUNTS);
-      setSchedule([]);
       setSalesTarget({ current: 0, target: 10 });
       setUnreadMessages(0);
     } finally {
@@ -342,7 +319,6 @@ export function useAgentDashboardData() {
     activities,
     completedCount,
     totalCount: activities.length,
-    schedule,
     salesTarget,
     unreadMessages,
     refetch: fetchAll,

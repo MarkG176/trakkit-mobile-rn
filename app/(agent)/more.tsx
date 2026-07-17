@@ -16,6 +16,7 @@ const LINKS: {
   destructive?: boolean;
 }[] = [
   { code: 'CRM-0090', label: 'Profile', path: '/(agent)/profile', icon: 'person' },
+  { code: 'CRM-0091', label: 'Activity', path: '/(agent)/activity', icon: 'pulse' },
   { code: 'CRM-0097', label: 'Surveys', path: '/(agent)/surveys', icon: 'clipboard' },
   { code: 'CRM-0110', label: 'Chat', path: '/(agent)/support-ticket', icon: 'chatbubble' },
   { code: 'CRM-0099', label: 'Reports', path: '/(agent)/reports', icon: 'bar-chart' },
@@ -32,11 +33,9 @@ const LINKS: {
 export default function MoreScreen() {
   const router = useRouter();
   const { isEnabled } = useProjectComponents();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
 
-  const visibleLinks = LINKS.filter(
-    (l) => l.destructive || l.code === 'CRM-0090' || l.code === 'CRM-0110' || isEnabled(l.code),
-  );
+  const visibleLinks = LINKS.filter((l) => l.destructive || isEnabled(l.code));
 
   const handlePress = async (link: (typeof LINKS)[number]) => {
     if (link.destructive) {

@@ -23,9 +23,9 @@ export function QuickActions() {
 
   return (
     <ComponentGate code="CRM-0051">
-      <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
+      <View>
         <SectionHeader title="Quick Actions" />
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           {actions.map((action) => (
             <Button
               key={action.code}

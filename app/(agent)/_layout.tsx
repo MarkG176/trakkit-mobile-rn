@@ -5,6 +5,7 @@ import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useUserRole } from '@/hooks/useUserRole';
 import { tabBarIcon, getTabScreenOptions } from '@/components/navigation/TabIcon';
 import { TopBar } from '@/components/dashboard/TopBar';
+import { ComponentGate } from '@/components/ComponentGate';
 import { LoadingSpinner } from '@/components/ui';
 import { colors } from '@/theme';
 
@@ -27,10 +28,19 @@ export default function AgentLayout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-      <TopBar />
+      <ComponentGate code="CRM-0050">
+        <TopBar />
+      </ComponentGate>
       <View style={{ flex: 1 }}>
         <Tabs screenOptions={getTabScreenOptions(insets.bottom)}>
-          <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabBarIcon('home') }} />
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: 'Home',
+              href: show('CRM-0089', true) ? undefined : null,
+              tabBarIcon: tabBarIcon('home'),
+            }}
+          />
           <Tabs.Screen
             name="reports"
             options={{

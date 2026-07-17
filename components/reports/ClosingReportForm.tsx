@@ -8,6 +8,7 @@ import {
   parseCount,
   reportAlert,
   SkuCountField,
+  stockReport,
   submitStockRows,
   todayWorkDate,
   useReportSkus,
@@ -61,10 +62,16 @@ export function ClosingReportForm() {
 
   return (
     <Card style={{ marginBottom: spacing.lg, padding: spacing.lg }}>
-      <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.sm }}>
+      <AppText
+        variant="h3"
+        style={{ fontWeight: '700', color: stockReport.heading, marginBottom: spacing.sm }}
+      >
         In-store Closing Report
       </AppText>
-      <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
+      <AppText
+        variant="secondary"
+        style={{ marginBottom: spacing.md, fontSize: stockReport.labelSize }}
+      >
         Capture closing stock and day totals per SKU.
       </AppText>
 
@@ -75,9 +82,19 @@ export function ClosingReportForm() {
       ) : (
         skus.map((sku) => (
           <View key={sku.productVariantId} style={{ marginBottom: spacing.sm }}>
-            <AppText style={{ fontWeight: '500', marginBottom: spacing.xs }}>{sku.name}</AppText>
+            <AppText
+              style={{
+                fontWeight: '500',
+                fontSize: stockReport.labelSize,
+                marginBottom: spacing.xs,
+                flexShrink: 1,
+              }}
+            >
+              {sku.name}
+            </AppText>
             <SkuCountField
               label="Closing stock"
+              accent={stockReport.column.close}
               value={closingBySku[sku.productVariantId] ?? ''}
               onChangeText={(value) =>
                 setClosingBySku((prev) => ({ ...prev, [sku.productVariantId]: value }))
@@ -85,6 +102,7 @@ export function ClosingReportForm() {
             />
             <SkuCountField
               label="Quantity sold"
+              accent={stockReport.column.sales}
               value={soldBySku[sku.productVariantId] ?? ''}
               onChangeText={(value) =>
                 setSoldBySku((prev) => ({ ...prev, [sku.productVariantId]: value }))

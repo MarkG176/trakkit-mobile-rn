@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ComponentGate } from '@/components/ComponentGate';
 import { AppText, Card, LoadingSpinner, ProgressBar } from '@/components/ui';
 import type { ExpectedActivity, SalesTarget } from '@/hooks/useAgentDashboardData';
 import { colors, radius, spacing } from '@/theme';
@@ -54,6 +55,8 @@ export function ExpectedActivitiesCard({
   const salesProgress =
     salesTarget.target > 0 ? Math.min(1, salesTarget.current / salesTarget.target) : 0;
 
+  if (!loading && activities.length === 0) return null;
+
   return (
     <Card style={{ padding: spacing.lg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md }}>
@@ -95,29 +98,31 @@ export function ExpectedActivitiesCard({
             ))}
           </View>
 
-          <View
-            style={{
-              marginTop: spacing.md,
-              paddingTop: spacing.md,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-            }}
-          >
+          <ComponentGate code="CRM-0034">
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: spacing.sm,
+                marginTop: spacing.md,
+                paddingTop: spacing.md,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
               }}
             >
-              <AppText style={{ fontWeight: '600', flexShrink: 1 }}>Sales Target</AppText>
-              <AppText variant="secondary">
-                {salesTarget.current} / {salesTarget.target}
-              </AppText>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: spacing.sm,
+                }}
+              >
+                <AppText style={{ fontWeight: '600', flexShrink: 1 }}>Sales Target</AppText>
+                <AppText variant="secondary">
+                  {salesTarget.current} / {salesTarget.target}
+                </AppText>
+              </View>
+              <ProgressBar value={salesProgress} style={{ marginBottom: 0 }} />
             </View>
-            <ProgressBar value={salesProgress} style={{ marginBottom: 0 }} />
-          </View>
+          </ComponentGate>
         </>
       )}
     </Card>

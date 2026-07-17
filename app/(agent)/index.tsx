@@ -1,24 +1,27 @@
 import { ScrollView, View } from 'react-native';
 import { RecordAttendanceForm } from '@/components/attendance/RecordAttendanceForm';
 import { WorkHoursCard } from '@/components/dashboard/WorkHoursCard';
+import { QuickActions } from '@/components/dashboard/QuickActions';
 import { ExpectedActivitiesCard } from '@/components/dashboard/ExpectedActivitiesCard';
-import { UpcomingSchedule } from '@/components/dashboard/UpcomingSchedule';
 import { DashboardMessagesCard } from '@/components/dashboard/DashboardMessagesCard';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAgentDashboardData } from '@/hooks/useAgentDashboardData';
+import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { colors, spacing } from '@/theme';
 
 export default function AgentDashboard() {
+  const { isEnabled } = useProjectComponents();
   const {
     loading,
     statusLogs,
     activities,
     completedCount,
     totalCount,
-    schedule,
     salesTarget,
     unreadMessages,
   } = useAgentDashboardData();
+
+  const showAttendance = isEnabled('CRM-0026') || isEnabled('CRM-0010');
 
   return (
     <ComponentGate code="CRM-0089" redirectTo="/(agent)/profile">
@@ -33,7 +36,8 @@ export default function AgentDashboard() {
             gap: spacing.md,
           }}
         >
-          <RecordAttendanceForm />
+          {showAttendance ? <RecordAttendanceForm /> : null}
+          <QuickActions />
           <WorkHoursCard logs={statusLogs} loading={loading} />
           <ExpectedActivitiesCard
             activities={activities}
@@ -42,7 +46,6 @@ export default function AgentDashboard() {
             salesTarget={salesTarget}
             loading={loading}
           />
-          <UpcomingSchedule items={schedule} loading={loading} />
           <DashboardMessagesCard unreadCount={unreadMessages} loading={loading} />
         </ScrollView>
       </View>

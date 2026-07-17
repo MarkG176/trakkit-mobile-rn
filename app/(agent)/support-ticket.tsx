@@ -6,6 +6,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { workspaceService } from '@/services/workspaceService';
+import { ComponentGate } from '@/components/ComponentGate';
 import { FormField } from '@/components/forms/FormField';
 import {
   Screen,
@@ -213,24 +214,27 @@ export default function SupportTicketScreen() {
 
   if (submitted) {
     return (
-      <Screen scroll showBack>
-        <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
-          <Ionicons name="checkmark-circle" size={64} color={colors.success} />
-          <AppText variant="h3" style={{ marginTop: spacing.md, marginBottom: spacing.sm }}>
-            Thank you!
-          </AppText>
-          <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
-            Our team is already working on your request.
-          </AppText>
-          <Button onPress={() => setSubmitted(false)} style={{ alignSelf: 'stretch' }}>
-            Back to Chat
-          </Button>
-        </View>
-      </Screen>
+      <ComponentGate code="CRM-0110" redirectTo="/(agent)">
+        <Screen scroll showBack>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
+            <Ionicons name="checkmark-circle" size={64} color={colors.success} />
+            <AppText variant="h3" style={{ marginTop: spacing.md, marginBottom: spacing.sm }}>
+              Thank you!
+            </AppText>
+            <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
+              Our team is already working on your request.
+            </AppText>
+            <Button onPress={() => setSubmitted(false)} style={{ alignSelf: 'stretch' }}>
+              Back to Chat
+            </Button>
+          </View>
+        </Screen>
+      </ComponentGate>
     );
   }
 
   return (
+    <ComponentGate code="CRM-0110" redirectTo="/(agent)">
     <Screen scroll showBack>
       {loadingMessages ? (
         <LoadingSpinner label="Loading messages" />
@@ -446,6 +450,7 @@ export default function SupportTicketScreen() {
         </AppText>
       ) : null}
     </Screen>
+    </ComponentGate>
   );
 }
 

@@ -101,8 +101,12 @@ export default function ProfileScreen() {
             Account
           </AppText>
           <ListItemCard title="More" onPress={() => router.push('/(agent)/more')} trailing={<Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />} />
-          <ListItemCard title="Activity feed" onPress={() => router.push('/(agent)/activity')} trailing={<Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />} />
-          <ListItemCard title="Settings" onPress={() => router.push('/(agent)/settings')} trailing={<Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />} />
+          <ComponentGate code="CRM-0091">
+            <ListItemCard title="Activity feed" onPress={() => router.push('/(agent)/activity')} trailing={<Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />} />
+          </ComponentGate>
+          <ComponentGate code="CRM-0101">
+            <ListItemCard title="Settings" onPress={() => router.push('/(agent)/settings')} trailing={<Ionicons name="chevron-forward" size={20} color={colors.mutedForeground} />} />
+          </ComponentGate>
 
           <TouchableOpacity onPress={handleSignOut} style={{ marginTop: spacing.md }}>
             <AppText style={{ color: colors.destructive, fontWeight: '500', textAlign: 'center' }}>
