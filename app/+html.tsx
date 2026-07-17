@@ -11,8 +11,6 @@ export default function Root({ children }: { children: ReactNode }) {
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
-        <link rel="icon" href="/assets/images/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
