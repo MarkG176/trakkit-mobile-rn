@@ -6,10 +6,28 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { workspaceService } from '@/services/workspaceService';
 
+export type StatusLog = {
+  status: string | null;
+  timestamp: string | null;
+  created_at: string | null;
+};
+
 export interface ExpectedActivity {
   code: string;
   name: string;
   completed: boolean;
+}
+
+export interface ScheduleItem {
+  id: string;
+  time: string;
+  title: string;
+  location: string;
+}
+
+export interface SalesTarget {
+  current: number;
+  target: number;
 }
 
 type ActivityCounts = {
@@ -36,7 +54,6 @@ const EMPTY_COUNTS: ActivityCounts = {
   priceReports: 0,
 };
 
-/** Attendance check-in/out are shown as two separate 1-point activities. */
 const ATTENDANCE_ACTIVITY_CODES = new Set(['CRM-0010', 'CRM-0026']);
 
 const REPORT_VISIBILITY: Record<string, (teamType: string, inStore: boolean) => boolean> = {
@@ -71,11 +88,83 @@ function isActivityVisible(code: string, teamType: string, inStore: boolean): bo
   return true;
 }
 
-export function useExpectedActivities() {
+export function calculateTodayHours(logs: StatusLog[], now = Date.now()): number {
+  if (!logs.length) return 0;
+
+  let totalMinutes = 0;
+  let currentCheckIn: StatusLog | null = null;
+
+  for (const log of logs) {
+    if (log.status === 'checked_in' && !currentCheckIn) {
+      currentCheckIn = log;
+    } else if ((log.status === 'lunch' || log.status === 'checked_out') && currentCheckIn) {
+      const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
+      const end = new Date(log.timestamp ?? log.created_at ?? '').getTime();
+      totalMinutes += Math.max(0, (end - start) / 60000);
+      currentCheckIn = null;
+    }
+  }
+
+  if (currentCheckIn) {
+    const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
+    totalMinutes += Math.max(0, (now - start) / 60000);
+  }
+
+  return totalMinutes / 60;
+}
+
+export function hasOpenCheckIn(logs: StatusLog[]): boolean {
+  let open = false;
+  for (const log of logs) {
+    if (log.status === 'checked_in') open = true;
+    else if (log.status === 'lunch' || log.status === 'checked_out') open = false;
+  }
+  return open;
+}
+
+function buildActivities(
+  enabledActivities: { code: string; name: string }[],
+  counts: ActivityCounts,
+): ExpectedActivity[] {
+  const hasAttendanceAction = enabledActivities.some((component) =>
+    ATTENDANCE_ACTIVITY_CODES.has(component.code),
+  );
+
+  const otherActivities = enabledActivities
+    .filter((component) => !ATTENDANCE_ACTIVITY_CODES.has(component.code))
+    .map((component) => ({
+      code: component.code,
+      name: component.name,
+      completed: COMPLETION_BY_CODE[component.code]?.(counts) ?? false,
+    }));
+
+  if (!hasAttendanceAction) return otherActivities;
+
+  return [
+    {
+      code: 'attendance-check-in',
+      name: 'Check In',
+      completed: counts.attendanceCheckIns > 0,
+    },
+    {
+      code: 'attendance-check-out',
+      name: 'Check Out',
+      completed: counts.attendanceCheckOuts > 0,
+    },
+    ...otherActivities,
+  ];
+}
+
+export function useAgentDashboardData() {
   const { user } = useAuth();
-  const { currentWorkspaceId, currentWorkspaceLabel } = useWorkspace();
+  const { currentWorkspaceId, currentWorkspaceLabel, isInitialized } = useWorkspace();
   const { isCheckedIn } = useAgentStatus();
+
+  const [statusLogs, setStatusLogs] = useState<StatusLog[]>([]);
   const [counts, setCounts] = useState<ActivityCounts>(EMPTY_COUNTS);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [salesTarget, setSalesTarget] = useState<SalesTarget>({ current: 0, target: 10 });
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const teamType = currentWorkspaceLabel?.toLowerCase() ?? '';
@@ -91,45 +180,44 @@ export function useExpectedActivities() {
     [teamType, inStore],
   );
 
-  const loadCounts = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     if (!user || !currentWorkspaceId) {
+      setStatusLogs([]);
       setCounts(EMPTY_COUNTS);
+      setSchedule([]);
+      setSalesTarget({ current: 0, target: 10 });
+      setUnreadMessages(0);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayIso = todayStart.toISOString();
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const todayIso = startOfDay.toISOString();
     const todayDate = todayIso.split('T')[0];
 
     try {
       const [
-        attendanceCheckIns,
-        attendanceCheckOuts,
-        sales,
-        giveaways,
-        engagementGiveaways,
-        surveys,
-        interactions,
-        dailyReports,
-        priceReports,
+        statusRes,
+        salesRes,
+        giveawaysRes,
+        engagementGiveawaysRes,
+        surveysRes,
+        interactionsRes,
+        dailyReportsRes,
+        priceReportsRes,
+        scheduleRes,
+        salesTargetRes,
+        messagesRes,
       ] = await Promise.all([
         supabase
           .from('agent_status_log')
-          .select('id', { count: 'exact', head: true })
+          .select('status, timestamp, created_at')
           .eq('agent_id', user.id)
           .eq('workspace_id', currentWorkspaceId)
-          .eq('status', 'checked_in')
-          .gte('timestamp', todayIso),
-        supabase
-          .from('agent_status_log')
-          .select('id', { count: 'exact', head: true })
-          .eq('agent_id', user.id)
-          .eq('workspace_id', currentWorkspaceId)
-          .eq('status', 'checked_out')
-          .gte('timestamp', todayIso),
+          .gte('timestamp', todayIso)
+          .order('timestamp', { ascending: true }),
         supabase
           .from('interactions')
           .select('id', { count: 'exact', head: true })
@@ -178,68 +266,85 @@ export function useExpectedActivities() {
           .eq('agent_id', user.id)
           .eq('workspace_id', currentWorkspaceId)
           .gte('created_at', todayIso),
+        supabase
+          .from('route_assignments')
+          .select('id, area_name, status, date')
+          .eq('workspace_id', currentWorkspaceId)
+          .eq('agent_id', user.id)
+          .eq('date', todayDate)
+          .limit(5),
+        supabase
+          .from('agent_tasks')
+          .select('individual_sales_target')
+          .eq('agent_id', user.id)
+          .eq('status', 'pending')
+          .maybeSingle(),
+        supabase
+          .from('supervisor_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_deleted', false)
+          .eq('is_read', false),
       ]);
 
+      const logs = statusRes.data ?? [];
+      const salesCount = salesRes.count ?? 0;
+      setStatusLogs(logs);
       setCounts({
-        attendanceCheckIns: attendanceCheckIns.count ?? 0,
-        attendanceCheckOuts: attendanceCheckOuts.count ?? 0,
-        sales: sales.count ?? 0,
-        giveaways: giveaways.count ?? 0,
-        engagementGiveaways: engagementGiveaways.count ?? 0,
-        surveys: surveys.count ?? 0,
-        interactions: interactions.count ?? 0,
-        dailyReports: dailyReports.count ?? 0,
-        priceReports: priceReports.count ?? 0,
+        attendanceCheckIns: logs.filter((log) => log.status === 'checked_in').length,
+        attendanceCheckOuts: logs.filter((log) => log.status === 'checked_out').length,
+        sales: salesCount,
+        giveaways: giveawaysRes.count ?? 0,
+        engagementGiveaways: engagementGiveawaysRes.count ?? 0,
+        surveys: surveysRes.count ?? 0,
+        interactions: interactionsRes.count ?? 0,
+        dailyReports: dailyReportsRes.count ?? 0,
+        priceReports: priceReportsRes.count ?? 0,
       });
+      setSchedule(
+        (scheduleRes.data ?? []).map((row) => ({
+          id: row.id,
+          time: 'Today',
+          title: row.area_name ?? 'Visit',
+          location: row.status ?? 'pending',
+        })),
+      );
+      setSalesTarget({
+        current: salesCount,
+        target: salesTargetRes.data?.individual_sales_target ?? 10,
+      });
+      setUnreadMessages(messagesRes.count ?? 0);
     } catch (error) {
-      console.error('Error loading expected activities:', error);
+      console.error('Error loading agent dashboard data:', error);
+      setStatusLogs([]);
       setCounts(EMPTY_COUNTS);
+      setSchedule([]);
+      setSalesTarget({ current: 0, target: 10 });
+      setUnreadMessages(0);
     } finally {
       setLoading(false);
     }
   }, [user, currentWorkspaceId]);
 
   useEffect(() => {
-    loadCounts();
-  }, [loadCounts, isCheckedIn]);
+    fetchAll();
+  }, [fetchAll, isCheckedIn]);
 
-  const activities: ExpectedActivity[] = useMemo(() => {
-    const hasAttendanceAction = enabledActivities.some((component) =>
-      ATTENDANCE_ACTIVITY_CODES.has(component.code),
-    );
-
-    const otherActivities = enabledActivities
-      .filter((component) => !ATTENDANCE_ACTIVITY_CODES.has(component.code))
-      .map((component) => ({
-        code: component.code,
-        name: component.name,
-        completed: COMPLETION_BY_CODE[component.code]?.(counts) ?? false,
-      }));
-
-    if (!hasAttendanceAction) return otherActivities;
-
-    return [
-      {
-        code: 'attendance-check-in',
-        name: 'Check In',
-        completed: counts.attendanceCheckIns > 0,
-      },
-      {
-        code: 'attendance-check-out',
-        name: 'Check Out',
-        completed: counts.attendanceCheckOuts > 0,
-      },
-      ...otherActivities,
-    ];
-  }, [enabledActivities, counts]);
-
+  const activities = useMemo(
+    () => buildActivities(enabledActivities, counts),
+    [enabledActivities, counts],
+  );
   const completedCount = activities.filter((activity) => activity.completed).length;
 
   return {
+    loading: !isInitialized || loading,
+    statusLogs,
     activities,
     completedCount,
     totalCount: activities.length,
-    loading,
-    refresh: loadCounts,
+    schedule,
+    salesTarget,
+    unreadMessages,
+    refetch: fetchAll,
   };
 }

@@ -1,62 +1,23 @@
 ﻿import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
-import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { ComponentGate } from '@/components/ComponentGate';
 import { AppText, Card, LoadingSpinner, ProgressBar } from '@/components/ui';
+import {
+  calculateTodayHours,
+  hasOpenCheckIn,
+  type StatusLog,
+} from '@/hooks/useAgentDashboardData';
 import { colors, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 const DAILY_TARGET_HOURS = 8;
 const TICK_INTERVAL_MS = 30_000;
 
-type StatusLog = {
-  status: string | null;
-  timestamp: string | null;
-  created_at: string | null;
-};
-
 function formatHours(hours: number): string {
   const wholeHours = Math.floor(hours);
   const minutes = Math.round((hours - wholeHours) * 60);
   return `${wholeHours}h ${minutes}m`;
-}
-
-function calculateTodayHours(logs: StatusLog[], now = Date.now()): number {
-  if (!logs.length) return 0;
-
-  let totalMinutes = 0;
-  let currentCheckIn: StatusLog | null = null;
-
-  for (const log of logs) {
-    if (log.status === 'checked_in' && !currentCheckIn) {
-      currentCheckIn = log;
-    } else if ((log.status === 'lunch' || log.status === 'checked_out') && currentCheckIn) {
-      const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
-      const end = new Date(log.timestamp ?? log.created_at ?? '').getTime();
-      totalMinutes += Math.max(0, (end - start) / 60000);
-      currentCheckIn = null;
-    }
-  }
-
-  if (currentCheckIn) {
-    const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
-    totalMinutes += Math.max(0, (now - start) / 60000);
-  }
-
-  return totalMinutes / 60;
-}
-
-function hasOpenCheckIn(logs: StatusLog[]): boolean {
-  let open = false;
-  for (const log of logs) {
-    if (log.status === 'checked_in') open = true;
-    else if (log.status === 'lunch' || log.status === 'checked_out') open = false;
-  }
-  return open;
 }
 
 function SectionIcon({ name }: { name: IoniconName }) {
@@ -76,51 +37,17 @@ function SectionIcon({ name }: { name: IoniconName }) {
   );
 }
 
-export function WorkHoursCard() {
-  const { user } = useAuth();
-  const { currentWorkspaceId } = useWorkspace();
-  const { isCheckedIn } = useAgentStatus();
-  const [logs, setLogs] = useState<StatusLog[]>([]);
-  const [todayHours, setTodayHours] = useState(0);
-  const [loading, setLoading] = useState(true);
+interface WorkHoursCardProps {
+  logs: StatusLog[];
+  loading?: boolean;
+}
+
+export function WorkHoursCard({ logs, loading = false }: WorkHoursCardProps) {
+  const [todayHours, setTodayHours] = useState(() => calculateTodayHours(logs));
 
   useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      if (!user || !currentWorkspaceId) {
-        if (!cancelled) {
-          setLogs([]);
-          setTodayHours(0);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const { data } = await supabase
-        .from('agent_status_log')
-        .select('status, timestamp, created_at')
-        .eq('agent_id', user.id)
-        .eq('workspace_id', currentWorkspaceId)
-        .gte('timestamp', startOfDay.toISOString())
-        .order('timestamp', { ascending: true });
-
-      if (cancelled) return;
-
-      const nextLogs = data ?? [];
-      setLogs(nextLogs);
-      setTodayHours(calculateTodayHours(nextLogs));
-      setLoading(false);
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, currentWorkspaceId, isCheckedIn]);
+    setTodayHours(calculateTodayHours(logs));
+  }, [logs]);
 
   useEffect(() => {
     if (!hasOpenCheckIn(logs)) return;

@@ -1,8 +1,7 @@
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useExpectedActivities } from '@/hooks/useExpectedActivities';
-import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { AppText, Card, LoadingSpinner, ProgressBar } from '@/components/ui';
+import type { ExpectedActivity, SalesTarget } from '@/hooks/useAgentDashboardData';
 import { colors, radius, spacing } from '@/theme';
 
 function ActivityRow({ name, completed, isLast }: { name: string; completed: boolean; isLast: boolean }) {
@@ -36,12 +35,24 @@ function ActivityRow({ name, completed, isLast }: { name: string; completed: boo
   );
 }
 
-export function ExpectedActivitiesCard() {
-  const { isInitialized } = useWorkspace();
-  const { activities, completedCount, totalCount, loading } = useExpectedActivities();
+interface ExpectedActivitiesCardProps {
+  activities: ExpectedActivity[];
+  completedCount: number;
+  totalCount: number;
+  salesTarget: SalesTarget;
+  loading?: boolean;
+}
 
+export function ExpectedActivitiesCard({
+  activities,
+  completedCount,
+  totalCount,
+  salesTarget,
+  loading = false,
+}: ExpectedActivitiesCardProps) {
   const progress = totalCount > 0 ? completedCount / totalCount : 0;
-  const showLoading = !isInitialized || loading;
+  const salesProgress =
+    salesTarget.target > 0 ? Math.min(1, salesTarget.current / salesTarget.target) : 0;
 
   return (
     <Card style={{ padding: spacing.lg }}>
@@ -60,15 +71,15 @@ export function ExpectedActivitiesCard() {
         </View>
         <View style={{ flex: 1 }}>
           <AppText variant="h3" style={{ fontWeight: '700', flexShrink: 1 }}>
-            Today&apos;s Activities
+            Today's Activities
           </AppText>
           <AppText variant="secondary" style={{ marginTop: 2 }}>
-            {showLoading ? 'Loading activities' : `${completedCount} of ${totalCount} complete`}
+            {loading ? 'Loading activities' : `${completedCount} of ${totalCount} complete`}
           </AppText>
         </View>
       </View>
 
-      {showLoading ? (
+      {loading ? (
         <LoadingSpinner label="Loading activities" />
       ) : (
         <>
@@ -82,6 +93,30 @@ export function ExpectedActivitiesCard() {
                 isLast={index === activities.length - 1}
               />
             ))}
+          </View>
+
+          <View
+            style={{
+              marginTop: spacing.md,
+              paddingTop: spacing.md,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: spacing.sm,
+              }}
+            >
+              <AppText style={{ fontWeight: '600', flexShrink: 1 }}>Sales Target</AppText>
+              <AppText variant="secondary">
+                {salesTarget.current} / {salesTarget.target}
+              </AppText>
+            </View>
+            <ProgressBar value={salesProgress} style={{ marginBottom: 0 }} />
           </View>
         </>
       )}

@@ -7,6 +7,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { WorkHoursCard } from '@/components/dashboard/WorkHoursCard';
+import { useAgentDashboardData } from '@/hooks/useAgentDashboardData';
 import { AppText, Card, ListItemCard } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
@@ -20,6 +21,7 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const { currentWorkspaceId, currentWorkspaceLabel } = useWorkspace();
   const router = useRouter();
+  const { statusLogs, loading: hoursLoading } = useAgentDashboardData();
   const [rank, setRank] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
   const [salesToday, setSalesToday] = useState(0);
@@ -92,7 +94,7 @@ export default function ProfileScreen() {
           </Card>
 
           <View style={{ marginBottom: spacing.md }}>
-            <WorkHoursCard />
+            <WorkHoursCard logs={statusLogs} loading={hoursLoading} />
           </View>
 
           <AppText variant="secondary" style={{ textTransform: 'uppercase', marginBottom: spacing.sm }}>

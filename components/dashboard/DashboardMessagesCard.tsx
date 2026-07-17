@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
 import { ComponentGate } from '@/components/ComponentGate';
 import { AppText, Card, LoadingSpinner } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 function SectionIcon({ name }: { name: IoniconName }) {
@@ -26,39 +23,21 @@ function SectionIcon({ name }: { name: IoniconName }) {
   );
 }
 
-export function DashboardMessagesCard() {
+interface DashboardMessagesCardProps {
+  unreadCount: number;
+  loading?: boolean;
+}
+
+export function DashboardMessagesCard({ unreadCount, loading = false }: DashboardMessagesCardProps) {
   const router = useRouter();
-  const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const loadMessages = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    const { count } = await supabase
-      .from('supervisor_messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('recipient_id', user.id)
-      .eq('is_deleted', false)
-      .eq('is_read', false);
-
-    setUnreadCount(count ?? 0);
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    loadMessages();
-  }, [loadMessages]);
-
   const hasNew = unreadCount > 0;
 
   return (
     <ComponentGate code="CRM-0110">
-      <Pressable onPress={() => router.push('/(agent)/support-ticket' as never)}>
+      <Pressable
+        onPress={() => router.push('/(agent)/support-ticket' as never)}
+        hitSlop={hitSlop}
+      >
         <Card style={{ padding: spacing.lg }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm }}>
             <SectionIcon name="chatbubble-outline" />
