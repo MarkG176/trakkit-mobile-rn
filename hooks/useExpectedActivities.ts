@@ -14,7 +14,7 @@ export interface ExpectedActivity {
 
 type ActivityCounts = {
   attendanceCheckIns: number;
-  storeCheckIns: number;
+  attendanceCheckOuts: number;
   sales: number;
   giveaways: number;
   engagementGiveaways: number;
@@ -26,7 +26,7 @@ type ActivityCounts = {
 
 const EMPTY_COUNTS: ActivityCounts = {
   attendanceCheckIns: 0,
-  storeCheckIns: 0,
+  attendanceCheckOuts: 0,
   sales: 0,
   giveaways: 0,
   engagementGiveaways: 0,
@@ -35,6 +35,9 @@ const EMPTY_COUNTS: ActivityCounts = {
   dailyReports: 0,
   priceReports: 0,
 };
+
+/** Attendance check-in/out are shown as two separate 1-point activities. */
+const ATTENDANCE_ACTIVITY_CODES = new Set(['CRM-0010', 'CRM-0026']);
 
 const REPORT_VISIBILITY: Record<string, (teamType: string, inStore: boolean) => boolean> = {
   'CRM-0019': (teamType) =>
@@ -48,8 +51,6 @@ const REPORT_VISIBILITY: Record<string, (teamType: string, inStore: boolean) => 
 };
 
 const COMPLETION_BY_CODE: Record<string, (counts: ActivityCounts) => boolean> = {
-  'CRM-0010': (c) => c.storeCheckIns > 0,
-  'CRM-0026': (c) => c.attendanceCheckIns > 0,
   'CRM-0034': (c) => c.sales > 0,
   'CRM-0034G': (c) => c.giveaways > 0,
   'CRM-0097': (c) => c.surveys > 0,
@@ -106,7 +107,7 @@ export function useExpectedActivities() {
     try {
       const [
         attendanceCheckIns,
-        storeCheckIns,
+        attendanceCheckOuts,
         sales,
         giveaways,
         engagementGiveaways,
@@ -127,8 +128,7 @@ export function useExpectedActivities() {
           .select('id', { count: 'exact', head: true })
           .eq('agent_id', user.id)
           .eq('workspace_id', currentWorkspaceId)
-          .eq('status', 'checked_in')
-          .not('store_id', 'is', null)
+          .eq('status', 'checked_out')
           .gte('timestamp', todayIso),
         supabase
           .from('interactions')
@@ -182,7 +182,7 @@ export function useExpectedActivities() {
 
       setCounts({
         attendanceCheckIns: attendanceCheckIns.count ?? 0,
-        storeCheckIns: storeCheckIns.count ?? 0,
+        attendanceCheckOuts: attendanceCheckOuts.count ?? 0,
         sales: sales.count ?? 0,
         giveaways: giveaways.count ?? 0,
         engagementGiveaways: engagementGiveaways.count ?? 0,
@@ -203,18 +203,35 @@ export function useExpectedActivities() {
     loadCounts();
   }, [loadCounts, isCheckedIn]);
 
-  const activities: ExpectedActivity[] = useMemo(
-    () =>
-      enabledActivities.map((component) => {
-        const isComplete = COMPLETION_BY_CODE[component.code]?.(counts) ?? false;
-        return {
-          code: component.code,
-          name: component.name,
-          completed: isComplete,
-        };
-      }),
-    [enabledActivities, counts],
-  );
+  const activities: ExpectedActivity[] = useMemo(() => {
+    const hasAttendanceAction = enabledActivities.some((component) =>
+      ATTENDANCE_ACTIVITY_CODES.has(component.code),
+    );
+
+    const otherActivities = enabledActivities
+      .filter((component) => !ATTENDANCE_ACTIVITY_CODES.has(component.code))
+      .map((component) => ({
+        code: component.code,
+        name: component.name,
+        completed: COMPLETION_BY_CODE[component.code]?.(counts) ?? false,
+      }));
+
+    if (!hasAttendanceAction) return otherActivities;
+
+    return [
+      {
+        code: 'attendance-check-in',
+        name: 'Check In',
+        completed: counts.attendanceCheckIns > 0,
+      },
+      {
+        code: 'attendance-check-out',
+        name: 'Check Out',
+        completed: counts.attendanceCheckOuts > 0,
+      },
+      ...otherActivities,
+    ];
+  }, [enabledActivities, counts]);
 
   const completedCount = activities.filter((activity) => activity.completed).length;
 

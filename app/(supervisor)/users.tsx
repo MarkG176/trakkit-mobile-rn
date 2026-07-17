@@ -25,7 +25,7 @@ export default function UsersScreen() {
 
   return (
     <ComponentGate code="CRM-0123">
-      <Screen scroll title="Users">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading users" />
         ) : (

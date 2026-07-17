@@ -1,0 +1,38 @@
+---
+description: Mobile-native UI conventions — touch targets, chrome, links, radii, focus, typography
+globs: theme/**,components/ui/**,components/**/*.tsx,app/**/*.tsx
+alwaysApply: false
+---
+
+# Mobile-native UI
+
+This is a native Expo app, not a web/PWA port. Prefer platform conventions over HTML/CSS idioms.
+
+## Touch targets
+
+- Prefer **48dp** control heights; never ship below **44pt** without `hitSlop`.
+- Use shared `hitSlop` from `@/theme` on `Button`, `IconButton`, list/chip presses, and icon-only controls.
+- Do not use mouse-sized 36–40 heights as defaults.
+
+## Typography
+
+- Body **16**, secondary **14**, caption/helper/badge/tab labels **12** (never below 11).
+- Section titles: h1 **28**, h2 **22**, h3 **20**.
+- Button labels and input/label text **16**.
+
+## Page chrome
+
+- Tab labels (or a stack header) identify the screen. Do **not** add full-width teal page-title banners or `Screen title=` / `subtitle=`.
+- Use `SectionHeader` only for in-content section labels, not to restate the route name.
+
+## Links
+
+- Tappable text uses color + weight (optional chevron). Never `textDecorationLine: 'underline'` for links.
+
+## Radii
+
+- Use the token scale (`sm` 8 / `md` 12 / `lg` 16). Avoid 4–6px “admin panel” corners.
+
+## Input focus
+
+- Keep the same `borderWidth` on focus; change `borderColor` (or a light fill) only. No CSS-style 1→2px focus outlines.

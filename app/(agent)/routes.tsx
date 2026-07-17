@@ -44,7 +44,7 @@ export default function RoutesScreen() {
 
   return (
     <ComponentGate code="CRM-0098" redirectTo="/(agent)">
-      <Screen scroll title="Stores" subtitle="Today's assigned stores">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading stores" />
         ) : stops.length === 0 ? (

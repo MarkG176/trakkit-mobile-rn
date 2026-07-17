@@ -8,9 +8,14 @@ import { radius, spacing } from '@/theme';
 interface CameraCaptureProps {
   onCapture: (uri: string) => void;
   label?: string;
+  submitLabel?: string;
 }
 
-export function CameraCapture({ onCapture, label = 'Take photo' }: CameraCaptureProps) {
+export function CameraCapture({
+  onCapture,
+  label = 'Take photo',
+  submitLabel = 'Submit',
+}: CameraCaptureProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
 
@@ -31,7 +36,6 @@ export function CameraCapture({ onCapture, label = 'Take photo' }: CameraCapture
 
     if (!result.canceled && result.assets[0]) {
       setPreview(result.assets[0].uri);
-      onCapture(result.assets[0].uri);
     }
   };
 
@@ -53,7 +57,16 @@ export function CameraCapture({ onCapture, label = 'Take photo' }: CameraCapture
           }}
         />
       ) : null}
-      <Button onPress={capture}>{label}</Button>
+      {preview ? (
+        <View style={{ gap: spacing.sm }}>
+          <Button onPress={() => onCapture(preview)}>{submitLabel}</Button>
+          <Button variant="secondary" onPress={capture}>
+            Retake
+          </Button>
+        </View>
+      ) : (
+        <Button onPress={capture}>{label}</Button>
+      )}
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import { ViewStyle, TextStyle } from 'react-native';
+import { ViewStyle, TextStyle, Insets } from 'react-native';
 import { colors, radius } from './tokens';
 import { font } from './typography';
 
@@ -10,7 +10,11 @@ const baseButton = {
   gap: 8,
 };
 
-export const buttonHeights = { sm: 36, default: 40, lg: 44, icon: 40, tile: 56 };
+/** Prefer 48dp; never ship below 44 without hitSlop. */
+export const buttonHeights = { sm: 44, default: 48, lg: 52, icon: 48, tile: 56 };
+
+/** Expands hit area when visual control is already ≥44. */
+export const hitSlop: number | Insets = 8;
 
 export const button = {
   base: {
@@ -21,14 +25,14 @@ export const button = {
   primary: { backgroundColor: colors.primary } satisfies ViewStyle,
   primaryText: {
     color: colors.primaryForeground,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     fontFamily: font.medium,
   } satisfies TextStyle,
   secondary: { backgroundColor: colors.muted } satisfies ViewStyle,
   secondaryText: {
     color: colors.foreground,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     fontFamily: font.medium,
   } satisfies TextStyle,
@@ -39,27 +43,26 @@ export const button = {
   } satisfies ViewStyle,
   outlineText: {
     color: colors.foreground,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     fontFamily: font.medium,
   } satisfies TextStyle,
   ghost: { backgroundColor: 'transparent' } satisfies ViewStyle,
   ghostText: {
     color: colors.mutedForeground,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     fontFamily: font.medium,
   } satisfies TextStyle,
   link: { backgroundColor: 'transparent' } satisfies ViewStyle,
   linkText: {
     color: colors.primary,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     fontFamily: font.medium,
-    textDecorationLine: 'underline',
   } satisfies TextStyle,
   destructive: { backgroundColor: colors.destructive } satisfies ViewStyle,
-  destructiveText: { color: '#FFFFFF', fontSize: 14, fontWeight: '500', fontFamily: font.medium } satisfies TextStyle,
+  destructiveText: { color: '#FFFFFF', fontSize: 16, fontWeight: '500', fontFamily: font.medium } satisfies TextStyle,
   tile: { height: buttonHeights.tile, flexDirection: 'column', gap: 4, paddingHorizontal: 12 } satisfies ViewStyle,
 };
 
@@ -100,18 +103,18 @@ export const badge = {
 
 export const input = {
   container: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
     backgroundColor: colors.background,
     paddingHorizontal: 16,
-    fontSize: 14,
+    fontSize: 16,
     color: colors.foreground,
     fontFamily: font.regular,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: colors.foreground,
     fontFamily: font.medium,
@@ -130,29 +133,12 @@ export const input = {
     marginTop: 4,
   } satisfies TextStyle,
   focused: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: colors.primary,
   } satisfies ViewStyle,
 };
 
 export const iconButton = {
-  size: 40,
+  size: 48,
   borderRadius: radius.full,
-};
-
-export const pageHeader = {
-  backgroundColor: colors.primary,
-  padding: 16,
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.primaryForeground,
-    fontFamily: font.bold,
-  } satisfies TextStyle,
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    fontFamily: font.regular,
-    marginTop: 4,
-  } satisfies TextStyle,
 };

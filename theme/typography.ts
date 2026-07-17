@@ -12,10 +12,10 @@ export const font = {
 export const text: Record<string, TextStyle> = {
   h1: { fontSize: 28, fontWeight: '700', color: colors.foreground, fontFamily: font.bold },
   h2: { fontSize: 22, fontWeight: '600', color: colors.foreground, fontFamily: font.medium },
-  h3: { fontSize: 18, fontWeight: '500', color: colors.foreground, fontFamily: font.medium },
-  body: { fontSize: 14, fontWeight: '400', color: colors.foreground, fontFamily: font.regular },
+  h3: { fontSize: 20, fontWeight: '500', color: colors.foreground, fontFamily: font.medium },
+  body: { fontSize: 16, fontWeight: '400', color: colors.foreground, fontFamily: font.regular },
   secondary: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '400',
     color: colors.secondaryForeground,
     fontFamily: font.regular,

@@ -19,18 +19,6 @@ import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgro
 import { getLastCheckInPhotoUrl, uploadCheckInPhoto } from '@/utils/agentPhotos';
 import { AppText, Button, Card } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
-import type { IoniconName } from '@/components/navigation/TabIcon';
-
-function InfoRow({ icon, label }: { icon: IoniconName; label: string }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
-      <Ionicons name={icon} size={16} color={colors.secondaryForeground} />
-      <AppText variant="secondary" style={{ flex: 1, flexShrink: 1 }}>
-        {label}
-      </AppText>
-    </View>
-  );
-}
 
 function StatusBadge({ isCheckedIn }: { isCheckedIn: boolean }) {
   const label = isCheckedIn ? 'CHECKED IN' : 'CHECKED OUT';
@@ -62,6 +50,8 @@ export function RecordAttendanceForm() {
   const [cameraDenied, setCameraDenied] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoPreviewOpen, setPhotoPreviewOpen] = useState(false);
+  const [pendingUri, setPendingUri] = useState<string | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<'checked_in' | 'checked_out' | null>(null);
 
   const AVATAR_SIZE = 106;
 
@@ -85,9 +75,14 @@ export function RecordAttendanceForm() {
     loadPhoto();
   }, [loadPhoto, isCheckedIn]);
 
+  const clearPendingCapture = () => {
+    setPendingUri(null);
+    setPendingStatus(null);
+  };
+
   const beginCapture = async () => {
     if (loading) return;
-    const status = isCheckedIn ? 'checked_out' : 'checked_in';
+    const status = pendingStatus ?? (isCheckedIn ? 'checked_out' : 'checked_in');
 
     const { status: permStatus } = await ImagePicker.requestCameraPermissionsAsync();
     if (permStatus !== 'granted') {
@@ -104,22 +99,23 @@ export function RecordAttendanceForm() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      await handleCapture(result.assets[0].uri, status);
+      setPendingUri(result.assets[0].uri);
+      setPendingStatus(status);
     }
   };
 
-  const handleCapture = async (uri: string, status: 'checked_in' | 'checked_out') => {
-    if (!user || !currentWorkspaceId) return;
+  const handleSubmit = async () => {
+    if (!user || !currentWorkspaceId || !pendingUri || !pendingStatus) return;
     setLoading(true);
 
     try {
       const location = await getCurrentLocation();
-      const uploaded = await uploadCheckInPhoto(uri, user.id);
+      const uploaded = await uploadCheckInPhoto(pendingUri, user.id);
 
       const payload = {
         agent_id: user.id,
         workspace_id: currentWorkspaceId,
-        status,
+        status: pendingStatus,
         location_lat: location.latitude,
         location_lng: location.longitude,
         selfie_url: uploaded,
@@ -130,15 +126,16 @@ export function RecordAttendanceForm() {
       if (!synced) {
         Alert.alert('Saved offline', 'Check-in will sync when you reconnect.');
       } else {
-        Alert.alert('Success', status === 'checked_in' ? 'Checked in!' : 'Checked out!');
+        Alert.alert('Success', pendingStatus === 'checked_in' ? 'Checked in!' : 'Checked out!');
       }
 
-      if (status === 'checked_in') {
+      if (pendingStatus === 'checked_in') {
         await startBackgroundTracking();
       } else {
         await stopBackgroundTracking();
       }
 
+      clearPendingCapture();
       await refresh();
       await loadPhoto();
     } catch (error) {
@@ -150,6 +147,8 @@ export function RecordAttendanceForm() {
 
   const actionLabel = isCheckedIn ? 'Check Out Now' : 'Check In Now';
   const actionIcon = isCheckedIn ? 'log-out-outline' : 'log-in-outline';
+  const submitLabel = pendingStatus === 'checked_out' ? 'Submit Check Out' : 'Submit Check In';
+  const isReviewingCapture = Boolean(pendingUri && pendingStatus);
 
   return (
     <>
@@ -170,8 +169,10 @@ export function RecordAttendanceForm() {
 
         <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
           <Pressable
-            onPress={() => setPhotoPreviewOpen(true)}
-            disabled={!photoUrl || profileLoading}
+            onPress={() => {
+              if (!isReviewingCapture) setPhotoPreviewOpen(true);
+            }}
+            disabled={isReviewingCapture || !photoUrl || profileLoading}
             accessibilityRole="button"
             accessibilityLabel="View check-in photo"
           >
@@ -204,10 +205,14 @@ export function RecordAttendanceForm() {
                     justifyContent: 'center',
                   }}
                 >
-                  {profileLoading ? (
+                  {profileLoading && !isReviewingCapture ? (
                     <ActivityIndicator color={colors.primary} />
-                  ) : photoUrl ? (
-                    <Image source={{ uri: photoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  ) : pendingUri || photoUrl ? (
+                    <Image
+                      source={{ uri: pendingUri ?? photoUrl! }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
                   ) : (
                     <Ionicons name="person" size={44} color={colors.secondaryForeground} />
                   )}
@@ -231,10 +236,15 @@ export function RecordAttendanceForm() {
               </View>
             </View>
           </Pressable>
+          <AppText
+            variant="secondary"
+            style={{ marginTop: spacing.sm, textAlign: 'center', flexShrink: 1 }}
+          >
+            {isReviewingCapture
+              ? 'Review your selfie, then submit to complete'
+              : 'This selfie contains your location'}
+          </AppText>
         </View>
-
-        <InfoRow icon="shield-checkmark-outline" label="Selfie verification required" />
-        <InfoRow icon="location-outline" label="Location captured automatically" />
 
         {cameraDenied ? (
           <PermissionGuidance
@@ -246,16 +256,44 @@ export function RecordAttendanceForm() {
           />
         ) : null}
 
-        <Button
-          variant="primary"
-          size="lg"
-          loading={loading}
-          onPress={beginCapture}
-          icon={<Ionicons name={actionIcon} size={18} color={colors.primaryForeground} />}
-          style={{ marginTop: spacing.md, width: '100%' }}
-        >
-          {actionLabel}
-        </Button>
+        {isReviewingCapture ? (
+          <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+            <Button
+              variant="primary"
+              size="lg"
+              loading={loading}
+              onPress={handleSubmit}
+              icon={<Ionicons name="checkmark-circle-outline" size={18} color={colors.primaryForeground} />}
+              style={{ width: '100%' }}
+            >
+              {submitLabel}
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              disabled={loading}
+              onPress={beginCapture}
+              icon={<Ionicons name="camera-outline" size={18} color={colors.foreground} />}
+              style={{ width: '100%' }}
+            >
+              Retake
+            </Button>
+            <Button variant="ghost" disabled={loading} onPress={clearPendingCapture} style={{ width: '100%' }}>
+              Cancel
+            </Button>
+          </View>
+        ) : (
+          <Button
+            variant="primary"
+            size="lg"
+            loading={loading}
+            onPress={beginCapture}
+            icon={<Ionicons name={actionIcon} size={18} color={colors.primaryForeground} />}
+            style={{ marginTop: spacing.md, width: '100%' }}
+          >
+            {actionLabel}
+          </Button>
+        )}
       </Card>
 
       <Modal

@@ -26,7 +26,7 @@ export default function GiveawayActivitiesScreen() {
 
   return (
     <ComponentGate code="CRM-0107">
-      <Screen scroll title="Giveaway Activities">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading giveaways" />
         ) : (

@@ -48,7 +48,7 @@ export default function GiveProductsScreen() {
 
   return (
     <ComponentGate code="CRM-0095" redirectTo="/(agent)">
-      <Screen scroll title="Give Products" showBack>
+      <Screen scroll showBack>
         <FormField label="Recipient name" value={recipientName} onChangeText={setRecipientName} />
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />

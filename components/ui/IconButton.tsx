@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { TouchableOpacity, TouchableOpacityProps, ViewStyle } from 'react-native';
-import { colors, iconButton, radius } from '@/theme';
+import { colors, hitSlop, iconButton, radius } from '@/theme';
 
 interface IconButtonProps extends TouchableOpacityProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export function IconButton({ children, circular = true, style, ...props }: IconB
   };
 
   return (
-    <TouchableOpacity style={[buttonStyle, style]} activeOpacity={0.7} {...props}>
+    <TouchableOpacity style={[buttonStyle, style]} activeOpacity={0.7} hitSlop={hitSlop} {...props}>
       {children}
     </TouchableOpacity>
   );

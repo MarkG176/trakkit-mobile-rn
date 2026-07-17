@@ -213,7 +213,7 @@ export default function SupportTicketScreen() {
 
   if (submitted) {
     return (
-      <Screen scroll title="Ticket Submitted" showBack subtitle="Our team will follow up soon">
+      <Screen scroll showBack>
         <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
           <Ionicons name="checkmark-circle" size={64} color={colors.success} />
           <AppText variant="h3" style={{ marginTop: spacing.md, marginBottom: spacing.sm }}>
@@ -231,7 +231,7 @@ export default function SupportTicketScreen() {
   }
 
   return (
-    <Screen scroll title="Chat" showBack subtitle="Choose the type of issue you're experiencing">
+    <Screen scroll showBack>
       {loadingMessages ? (
         <LoadingSpinner label="Loading messages" />
       ) : supervisorMessages.length > 0 ? (

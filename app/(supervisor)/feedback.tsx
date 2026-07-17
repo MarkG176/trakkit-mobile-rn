@@ -27,7 +27,7 @@ export default function FeedbackScreen() {
 
   return (
     <ComponentGate code="CRM-0119">
-      <Screen scroll title="Feedback">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading feedback" />
         ) : (

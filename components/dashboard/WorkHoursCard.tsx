@@ -4,12 +4,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { ComponentGate } from '@/components/ComponentGate';
 import { AppText, Card, LoadingSpinner, ProgressBar } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 const DAILY_TARGET_HOURS = 8;
+const TICK_INTERVAL_MS = 30_000;
+
+type StatusLog = {
+  status: string | null;
+  timestamp: string | null;
+  created_at: string | null;
+};
 
 function formatHours(hours: number): string {
   const wholeHours = Math.floor(hours);
@@ -17,13 +25,11 @@ function formatHours(hours: number): string {
   return `${wholeHours}h ${minutes}m`;
 }
 
-function calculateTodayHours(
-  logs: { status: string | null; timestamp: string | null; created_at: string | null }[],
-): number {
+function calculateTodayHours(logs: StatusLog[], now = Date.now()): number {
   if (!logs.length) return 0;
 
   let totalMinutes = 0;
-  let currentCheckIn: (typeof logs)[number] | null = null;
+  let currentCheckIn: StatusLog | null = null;
 
   for (const log of logs) {
     if (log.status === 'checked_in' && !currentCheckIn) {
@@ -38,10 +44,19 @@ function calculateTodayHours(
 
   if (currentCheckIn) {
     const start = new Date(currentCheckIn.timestamp ?? currentCheckIn.created_at ?? '').getTime();
-    totalMinutes += Math.max(0, (Date.now() - start) / 60000);
+    totalMinutes += Math.max(0, (now - start) / 60000);
   }
 
   return totalMinutes / 60;
+}
+
+function hasOpenCheckIn(logs: StatusLog[]): boolean {
+  let open = false;
+  for (const log of logs) {
+    if (log.status === 'checked_in') open = true;
+    else if (log.status === 'lunch' || log.status === 'checked_out') open = false;
+  }
+  return open;
 }
 
 function SectionIcon({ name }: { name: IoniconName }) {
@@ -64,17 +79,24 @@ function SectionIcon({ name }: { name: IoniconName }) {
 export function WorkHoursCard() {
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
+  const { isCheckedIn } = useAgentStatus();
+  const [logs, setLogs] = useState<StatusLog[]>([]);
   const [todayHours, setTodayHours] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
+    let cancelled = false;
+
+    const run = async () => {
       if (!user || !currentWorkspaceId) {
-        setLoading(false);
+        if (!cancelled) {
+          setLogs([]);
+          setTodayHours(0);
+          setLoading(false);
+        }
         return;
       }
 
-      setLoading(true);
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
@@ -86,12 +108,28 @@ export function WorkHoursCard() {
         .gte('timestamp', startOfDay.toISOString())
         .order('timestamp', { ascending: true });
 
-      setTodayHours(calculateTodayHours(data ?? []));
+      if (cancelled) return;
+
+      const nextLogs = data ?? [];
+      setLogs(nextLogs);
+      setTodayHours(calculateTodayHours(nextLogs));
       setLoading(false);
     };
 
-    load();
-  }, [user?.id, currentWorkspaceId]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, currentWorkspaceId, isCheckedIn]);
+
+  useEffect(() => {
+    if (!hasOpenCheckIn(logs)) return;
+
+    const tick = () => setTodayHours(calculateTodayHours(logs));
+    tick();
+    const id = setInterval(tick, TICK_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [logs]);
 
   const progress = Math.min(1, todayHours / DAILY_TARGET_HOURS);
 

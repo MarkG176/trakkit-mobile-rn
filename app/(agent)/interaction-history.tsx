@@ -26,7 +26,7 @@ export default function InteractionHistoryScreen() {
 
   return (
     <ComponentGate code="CRM-0105">
-      <Screen scroll title="Interaction History">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading history" />
         ) : (

@@ -46,7 +46,7 @@ export default function LogInteractionScreen() {
 
   return (
     <ComponentGate code="CRM-0096" redirectTo="/(agent)">
-      <Screen scroll title="Log Interaction" showBack>
+      <Screen scroll showBack>
         <ChipSelect
           label="Type"
           value={interactionType}

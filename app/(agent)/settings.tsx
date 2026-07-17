@@ -21,7 +21,7 @@ export default function SettingsScreen() {
 
   return (
     <ComponentGate code="CRM-0101">
-      <Screen scroll title="Settings">
+      <Screen scroll>
         <Card style={{ marginBottom: spacing.lg }}>
           <AppText style={{ fontWeight: '500', marginBottom: spacing.sm }}>Background location</AppText>
           <AppText variant="secondary" style={{ marginBottom: spacing.md }}>

@@ -167,7 +167,11 @@ export function AttendanceStatusStrip() {
           <AppText style={{ textAlign: 'center', fontWeight: '500', marginBottom: spacing.md }}>
             Take a selfie to {pendingStatus === 'checked_in' ? 'check in' : 'check out'}
           </AppText>
-          <CameraCapture onCapture={handleCapture} label="Capture selfie" />
+          <CameraCapture
+            onCapture={handleCapture}
+            label="Capture selfie"
+            submitLabel={pendingStatus === 'checked_out' ? 'Submit Check Out' : 'Submit Check In'}
+          />
           <Button variant="ghost" onPress={() => setShowCamera(false)} style={{ marginTop: spacing.md }}>
             Cancel
           </Button>

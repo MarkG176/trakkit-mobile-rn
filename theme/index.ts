@@ -1,6 +1,6 @@
 export { colors, radius, spacing, tabBar, typography } from './tokens';
 export { font, text } from './typography';
-export { button, buttonHeights, card, badge, input, iconButton, pageHeader } from './components';
+export { button, buttonHeights, hitSlop, card, badge, input, iconButton } from './components';
 
 import { tabBar } from './tokens';
 

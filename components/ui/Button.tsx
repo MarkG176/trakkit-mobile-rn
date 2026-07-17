@@ -7,7 +7,7 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
-import { button, buttonHeights, colors } from '@/theme';
+import { button, buttonHeights, colors, hitSlop } from '@/theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive' | 'tile';
 type ButtonSize = 'sm' | 'default' | 'lg' | 'icon';
@@ -64,6 +64,7 @@ export function Button({
       ]}
       disabled={disabled || loading}
       activeOpacity={0.8}
+      hitSlop={hitSlop}
       {...props}
     >
       {loading ? (

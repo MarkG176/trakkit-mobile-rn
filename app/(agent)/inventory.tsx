@@ -39,7 +39,7 @@ export default function InventoryScreen() {
 
   return (
     <ComponentGate code="CRM-0093" redirectTo="/(agent)">
-      <Screen scroll title="Inventory" subtitle="Your assigned products">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading inventory" />
         ) : items.length === 0 ? (

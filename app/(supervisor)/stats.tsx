@@ -39,7 +39,7 @@ export default function StatsScreen() {
 
   return (
     <ComponentGate code="CRM-0124">
-      <Screen scroll title="Stats">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading stats" />
         ) : (

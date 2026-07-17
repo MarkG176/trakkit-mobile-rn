@@ -49,7 +49,7 @@ export default function MoreScreen() {
 
   return (
     <ComponentGate code="CRM-0100">
-      <Screen scroll title="More" subtitle={user?.email ?? undefined}>
+      <Screen scroll>
         {visibleLinks.map((link) => (
           <Pressable
             key={link.code}

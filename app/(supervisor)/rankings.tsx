@@ -32,7 +32,7 @@ export default function RankingsScreen() {
 
   return (
     <ComponentGate code="CRM-0122">
-      <Screen scroll title="Rankings">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading rankings" />
         ) : (

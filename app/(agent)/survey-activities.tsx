@@ -26,7 +26,7 @@ export default function SurveyActivitiesScreen() {
 
   return (
     <ComponentGate code="CRM-0108">
-      <Screen scroll title="Survey Activities">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading surveys" />
         ) : (

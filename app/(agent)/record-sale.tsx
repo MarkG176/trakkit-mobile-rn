@@ -59,7 +59,7 @@ export default function RecordSaleScreen() {
 
   return (
     <ComponentGate code="CRM-0094" redirectTo="/(agent)">
-      <Screen scroll title="Record Sale" showBack>
+      <Screen scroll showBack>
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
         <FormField

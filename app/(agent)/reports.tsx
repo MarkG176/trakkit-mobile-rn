@@ -62,7 +62,7 @@ export default function ReportsScreen() {
 
   return (
     <ComponentGate code="CRM-0099" redirectTo="/(agent)">
-      <Screen scroll title="Reports">
+      <Screen scroll>
         {reports.length === 0 ? (
           <EmptyMessage>No reports enabled for this project.</EmptyMessage>
         ) : (

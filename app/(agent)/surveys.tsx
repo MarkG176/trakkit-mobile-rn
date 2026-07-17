@@ -102,7 +102,7 @@ export default function SurveysScreen() {
 
   return (
     <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-      <Screen scroll title="Surveys" subtitle={`Question ${step + 1} of ${questions.length}`}>
+      <Screen scroll>
         <ProgressBar value={(step + 1) / questions.length} />
         <SectionHeader title={current.question_text} />
 

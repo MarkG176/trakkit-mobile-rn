@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { AppText } from './AppText';
 import { Card } from './Card';
-import { colors, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 
 interface ListItemCardProps {
   title: string;
@@ -25,7 +25,7 @@ export function ListItemCard({ title, subtitle, trailing, onPress, style }: List
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={hitSlop}>
         {card}
       </TouchableOpacity>
     );
@@ -57,10 +57,13 @@ export function ChipSelect({ label, options, value, onChange }: ChipSelectProps)
             <TouchableOpacity
               key={opt.value}
               onPress={() => onChange(opt.value)}
+              hitSlop={hitSlop}
               style={{
-                borderRadius: 9999,
+                borderRadius: radius.full,
+                minHeight: 44,
                 paddingHorizontal: spacing.md,
-                paddingVertical: spacing.xs,
+                paddingVertical: spacing.sm,
+                justifyContent: 'center',
                 backgroundColor: selected ? colors.primary : colors.muted,
               }}
             >
@@ -90,7 +93,7 @@ interface SelectCardProps {
 
 export function SelectCard({ label, selected, onPress }: SelectCardProps) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={hitSlop}>
       <Card
         style={{
           marginBottom: spacing.sm,

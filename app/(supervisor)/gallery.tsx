@@ -29,7 +29,7 @@ export default function GalleryScreen() {
 
   return (
     <ComponentGate code="CRM-0120">
-      <Screen scroll title="Gallery">
+      <Screen scroll>
         {loading ? (
           <LoadingSpinner label="Loading photos" />
         ) : (

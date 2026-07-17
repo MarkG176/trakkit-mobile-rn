@@ -3,7 +3,7 @@ import { Pressable, ScrollView, ScrollViewProps, View, ViewProps } from 'react-n
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from '@/theme';
+import { colors, hitSlop, spacing } from '@/theme';
 import { AppText } from './AppText';
 
 interface ScreenProps extends ViewProps {
@@ -11,10 +11,6 @@ interface ScreenProps extends ViewProps {
   scroll?: boolean;
   scrollProps?: ScrollViewProps;
   safeBottom?: boolean;
-  /** @deprecated Page title bars removed; tab labels identify the screen. */
-  title?: string;
-  /** @deprecated */
-  subtitle?: string;
   onBack?: () => void;
   showBack?: boolean;
   headerRight?: ReactNode;
@@ -27,7 +23,7 @@ function ScreenBackButton({ onBack }: { onBack?: () => void }) {
     <Pressable
       onPress={onBack ?? (() => router.back())}
       style={{ marginBottom: spacing.sm, alignSelf: 'flex-start', padding: 4 }}
-      hitSlop={8}
+      hitSlop={hitSlop}
       accessibilityLabel="Go back"
     >
       <Ionicons name="arrow-back" size={22} color={colors.foreground} />
