@@ -60,6 +60,12 @@ export default function RecordSaleScreen() {
   return (
     <ComponentGate code="CRM-0094" redirectTo="/(agent)">
       <Screen scroll showBack>
+        <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.xs }}>
+          Record sale
+        </AppText>
+        <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
+          Capture units sold and amount for this visit.
+        </AppText>
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
         <FormField

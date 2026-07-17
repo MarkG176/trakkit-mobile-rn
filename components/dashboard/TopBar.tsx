@@ -7,7 +7,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { offlineQueue } from '@/services/offlineQueue';
 import { getLastCheckInPhotoUrl } from '@/utils/agentPhotos';
 import { AppText } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 
 function avatarLetter(email?: string | null): string {
   if (!email) return '?';
@@ -57,9 +57,10 @@ export function TopBar() {
         <Pressable
           onPress={handleAvatarPress}
           accessibilityLabel="Open profile menu"
+          hitSlop={hitSlop}
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             borderRadius: radius.full,
             overflow: 'hidden',
             borderWidth: 1,

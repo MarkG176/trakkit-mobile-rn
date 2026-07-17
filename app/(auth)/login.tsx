@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppText, Button, Input, Card } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -145,7 +145,7 @@ export default function LoginScreen() {
                   style={{
                     width: 48,
                     height: 48,
-                    borderRadius: 24,
+                    borderRadius: radius.full,
                     backgroundColor: colors.primaryLight,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -174,7 +174,7 @@ export default function LoginScreen() {
                     minHeight: 52,
                     borderWidth: 1,
                     borderColor: colors.border,
-                    borderRadius: 8,
+                    borderRadius: radius.sm,
                     paddingHorizontal: spacing.md,
                     paddingVertical: spacing.sm,
                     marginBottom: spacing.md,

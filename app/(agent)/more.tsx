@@ -5,7 +5,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useAuth } from '@/providers/AuthProvider';
 import { Screen, AppText } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 const LINKS: {
@@ -54,13 +54,15 @@ export default function MoreScreen() {
           <Pressable
             key={link.code}
             onPress={() => handlePress(link)}
+            hitSlop={hitSlop}
             style={({ pressed }) => ({
-              height: 56,
+              minHeight: 48,
               flexDirection: 'row',
               alignItems: 'center',
               gap: spacing.md,
               paddingHorizontal: spacing.md,
-              borderRadius: 8,
+              paddingVertical: spacing.sm,
+              borderRadius: radius.sm,
               backgroundColor: pressed ? colors.muted : 'transparent',
             })}
           >
@@ -71,7 +73,7 @@ export default function MoreScreen() {
             />
             <AppText
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: '500',
                 color: link.destructive ? colors.destructive : colors.foreground,
               }}

@@ -17,7 +17,7 @@ import {
   LoadingSpinner,
   EmptyMessage,
 } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 
 type TicketType = 'bug_support' | 'inventory_request' | 'missing_stats';
 type InventoryIssueType = 'missing_inventory' | 'incorrect_inventory_details';
@@ -246,39 +246,40 @@ export default function SupportTicketScreen() {
               key={msg.id}
               style={{
                 backgroundColor: colors.muted,
-                borderRadius: 8,
+                borderRadius: radius.sm,
                 padding: spacing.md,
                 marginBottom: spacing.sm,
               }}
             >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs }}>
                 <AppText style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>
                   {msg.sender_name || 'Supervisor'}
                 </AppText>
-                <Pressable onPress={() => handleDeleteMessage(msg.id)} hitSlop={8}>
+                <Pressable onPress={() => handleDeleteMessage(msg.id)} hitSlop={hitSlop}>
                   <Ionicons name="trash-outline" size={16} color={colors.secondaryForeground} />
                 </Pressable>
               </View>
-              <AppText style={{ fontSize: 14 }}>{msg.message}</AppText>
+              <AppText>{msg.message}</AppText>
               {msg.image_url ? (
                 <Image
                   source={{ uri: msg.image_url }}
-                  style={{ marginTop: spacing.sm, width: '100%', height: 160, borderRadius: 8 }}
+                  style={{ marginTop: spacing.sm, width: '100%', height: 160, borderRadius: radius.sm }}
                   resizeMode="cover"
                 />
               ) : null}
               {msg.location_lat != null && msg.location_lng != null ? (
                 <Pressable
                   onPress={() => openLocation(msg.location_lat!, msg.location_lng!)}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm }}
+                  hitSlop={hitSlop}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}
                 >
                   <Ionicons name="location-outline" size={14} color={colors.primary} />
-                  <AppText style={{ fontSize: 12, color: colors.primary }}>
+                  <AppText style={{ fontSize: 12, fontWeight: '500', color: colors.primary }}>
                     {msg.location_label || 'View location'}
                   </AppText>
                 </Pressable>
               ) : null}
-              <AppText variant="secondary" style={{ fontSize: 11, marginTop: 4 }}>
+              <AppText variant="secondary" style={{ fontSize: 12, marginTop: spacing.xs }}>
                 {format(new Date(msg.created_at), 'MMM d, HH:mm')}
               </AppText>
             </View>
@@ -308,9 +309,9 @@ export default function SupportTicketScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
+                    width: 44,
+                    height: 44,
+                    borderRadius: radius.sm,
                     backgroundColor: selected ? option.accent : colors.muted,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -319,7 +320,7 @@ export default function SupportTicketScreen() {
                   <Ionicons name={option.icon} size={20} color={selected ? option.iconColor : colors.secondaryForeground} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <AppText style={{ fontWeight: '600', fontSize: 14 }}>{option.label}</AppText>
+                  <AppText style={{ fontWeight: '600', fontSize: 16 }}>{option.label}</AppText>
                   <AppText variant="secondary" style={{ fontSize: 12, marginTop: 2 }}>
                     {option.description}
                   </AppText>
@@ -328,7 +329,7 @@ export default function SupportTicketScreen() {
                   style={{
                     width: 20,
                     height: 20,
-                    borderRadius: 10,
+                    borderRadius: radius.full,
                     borderWidth: 2,
                     borderColor: selected ? colors.primary : colors.border,
                     backgroundColor: selected ? colors.primary : 'transparent',
@@ -336,7 +337,16 @@ export default function SupportTicketScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  {selected ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primaryForeground }} /> : null}
+                  {selected ? (
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: radius.full,
+                        backgroundColor: colors.primaryForeground,
+                      }}
+                    />
+                  ) : null}
                 </View>
               </View>
             </Card>
@@ -403,13 +413,13 @@ export default function SupportTicketScreen() {
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 backgroundColor: colors.muted,
-                borderRadius: 8,
+                borderRadius: radius.sm,
                 padding: spacing.md,
                 marginBottom: spacing.sm,
               }}
             >
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
                   <AppText style={{ fontSize: 12, fontWeight: '600' }}>
                     {TYPE_LABELS[ticket.ticket_type] ?? ticket.ticket_type}
                   </AppText>
@@ -417,14 +427,12 @@ export default function SupportTicketScreen() {
                     {ticket.status.replace('_', ' ')}
                   </Badge>
                 </View>
-                <AppText variant="secondary" style={{ fontSize: 12 }} numberOfLines={2}>
-                  {ticket.message}
-                </AppText>
-                <AppText variant="secondary" style={{ fontSize: 11, marginTop: 4 }}>
+                <AppText numberOfLines={2}>{ticket.message}</AppText>
+                <AppText variant="secondary" style={{ fontSize: 12, marginTop: spacing.xs }}>
                   {format(new Date(ticket.created_at), 'MMM d, HH:mm')}
                 </AppText>
               </View>
-              <Pressable onPress={() => handleDeleteTicket(ticket.id)} hitSlop={8} style={{ padding: 4 }}>
+              <Pressable onPress={() => handleDeleteTicket(ticket.id)} hitSlop={hitSlop} style={{ padding: spacing.xs }}>
                 <Ionicons name="trash-outline" size={18} color={colors.secondaryForeground} />
               </Pressable>
             </View>

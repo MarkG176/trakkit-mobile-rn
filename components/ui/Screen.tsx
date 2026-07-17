@@ -22,7 +22,7 @@ function ScreenBackButton({ onBack }: { onBack?: () => void }) {
   return (
     <Pressable
       onPress={onBack ?? (() => router.back())}
-      style={{ marginBottom: spacing.sm, alignSelf: 'flex-start', padding: 4 }}
+      style={{ marginBottom: spacing.sm, alignSelf: 'flex-start', padding: spacing.xs }}
       hitSlop={hitSlop}
       accessibilityLabel="Go back"
     >

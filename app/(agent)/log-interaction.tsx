@@ -6,7 +6,8 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { Screen, Button, ChipSelect } from '@/components/ui';
+import { Screen, Button, ChipSelect, AppText } from '@/components/ui';
+import { spacing } from '@/theme';
 
 const INTERACTION_TYPES = ['note', 'photo', 'call', 'visit', 'survey', 'sale', 'rejected', 'not_answered'];
 
@@ -47,6 +48,12 @@ export default function LogInteractionScreen() {
   return (
     <ComponentGate code="CRM-0096" redirectTo="/(agent)">
       <Screen scroll showBack>
+        <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.xs }}>
+          Log interaction
+        </AppText>
+        <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
+          Capture a customer engagement, feedback, or field note.
+        </AppText>
         <ChipSelect
           label="Type"
           value={interactionType}

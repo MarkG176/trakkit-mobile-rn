@@ -60,16 +60,17 @@ export function ChipSelect({ label, options, value, onChange }: ChipSelectProps)
               hitSlop={hitSlop}
               style={{
                 borderRadius: radius.full,
-                minHeight: 44,
+                minHeight: 48,
                 paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
+                paddingVertical: spacing.sm + 2,
                 justifyContent: 'center',
                 backgroundColor: selected ? colors.primary : colors.muted,
               }}
             >
               <AppText
                 style={{
-                  fontSize: 12,
+                  fontSize: 14,
+                  lineHeight: 20,
                   textTransform: 'capitalize',
                   color: selected ? colors.primaryForeground : colors.foreground,
                   fontWeight: '500',

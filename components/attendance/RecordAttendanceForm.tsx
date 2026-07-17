@@ -34,7 +34,7 @@ function StatusBadge({ isCheckedIn }: { isCheckedIn: boolean }) {
         borderRadius: radius.sm,
       }}
     >
-      <AppText style={{ fontSize: 10, fontWeight: '700', color: textColor, letterSpacing: 0.5 }}>
+      <AppText style={{ fontSize: 12, fontWeight: '700', color: textColor, letterSpacing: 0.5 }}>
         {label}
       </AppText>
     </View>
@@ -187,7 +187,7 @@ export function RecordAttendanceForm() {
             >
               <View
                 style={{
-                  padding: 4,
+                  padding: spacing.xs,
                   borderRadius: radius.full,
                   borderWidth: 1,
                   borderColor: '#E8ECEF',

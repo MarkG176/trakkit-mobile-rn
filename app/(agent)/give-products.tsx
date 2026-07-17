@@ -6,7 +6,8 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { Screen, Button } from '@/components/ui';
+import { Screen, Button, AppText } from '@/components/ui';
+import { spacing } from '@/theme';
 
 export default function GiveProductsScreen() {
   const { user } = useAuth();
@@ -49,6 +50,12 @@ export default function GiveProductsScreen() {
   return (
     <ComponentGate code="CRM-0095" redirectTo="/(agent)">
       <Screen scroll showBack>
+        <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.xs }}>
+          Give products
+        </AppText>
+        <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
+          Record promotional giveaways or samples handed out.
+        </AppText>
         <FormField label="Recipient name" value={recipientName} onChangeText={setRecipientName} />
         <FormField label="Product" value={productName} onChangeText={setProductName} />
         <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
