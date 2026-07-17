@@ -7,15 +7,18 @@ import { workspaceService } from '@/services/workspaceService';
 import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
 import { colors } from '@/theme';
 
+type SaleItem = { id: string; product_name: string | null; total_price: number };
+
 export default function SalesScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [sales, setSales] = useState<{ id: string; product_name: string | null; total_price: number }[]>([]);
+  const [sales, setSales] = useState<SaleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const currency = workspaceService.getProjectCurrencyCode();
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const { data } = await supabase
         .from('sale_items')
         .select('id, product_name, total_price')
@@ -25,7 +28,29 @@ export default function SalesScreen() {
       setSales(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-sales-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sale_items',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        (payload) => {
+          const row = payload.new as SaleItem;
+          setSales((prev) => [row, ...prev.filter((s) => s.id !== row.id)].slice(0, 30));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
+type RankRow = {
+  agent_id: string;
+  current_rank: string | null;
+  total_points: number | null;
+};
+
 export default function RankingsScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [ranks, setRanks] = useState<{ agent_id: string; current_rank: string | null; total_points: number | null }[]>([]);
+  const [ranks, setRanks] = useState<RankRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +32,28 @@ export default function RankingsScreen() {
       setRanks(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-rankings-${currentWorkspaceId ?? 'all'}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agent_ranks',
+          ...(currentWorkspaceId ? { filter: `workspace_id=eq.${currentWorkspaceId}` } : {}),
+        },
+        () => {
+          load();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

@@ -4,14 +4,17 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
 
+type Member = { id: string; role: string; user_id: string | null };
+
 export default function UsersScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [members, setMembers] = useState<{ id: string; role: string; user_id: string | null }[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const { data } = await supabase
         .from('user_workspaces')
         .select('id, role, user_id')
@@ -20,7 +23,28 @@ export default function UsersScreen() {
       setMembers(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-users-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_workspaces',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        () => {
+          load();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

@@ -12,8 +12,9 @@ export default function StatsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
@@ -34,7 +35,40 @@ export default function StatsScreen() {
       setGiveawayCount(giveaways.count ?? 0);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-stats-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'sale_items',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        () => {
+          load();
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'giveaways',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        () => {
+          load();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

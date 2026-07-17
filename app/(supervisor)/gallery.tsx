@@ -6,14 +6,17 @@ import { supabase } from '@/lib/supabase';
 import { Screen, LoadingSpinner } from '@/components/ui';
 import { radius, spacing } from '@/theme';
 
+type GalleryPhoto = { id: string; selfie_url: string | null };
+
 export default function GalleryScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [photos, setPhotos] = useState<{ id: string; selfie_url: string | null }[]>([]);
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const { data } = await supabase
         .from('agent_status_log')
         .select('id, selfie_url')
@@ -24,7 +27,30 @@ export default function GalleryScreen() {
       setPhotos(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-gallery-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'agent_status_log',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        (payload) => {
+          const row = payload.new as GalleryPhoto;
+          if (!row.selfie_url) return;
+          setPhotos((prev) => [row, ...prev.filter((p) => p.id !== row.id)].slice(0, 30));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

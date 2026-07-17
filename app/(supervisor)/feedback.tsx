@@ -4,14 +4,17 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
 
+type FeedbackItem = { id: string; outcome: string | null; created_at: string | null };
+
 export default function FeedbackScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [items, setItems] = useState<{ id: string; outcome: string | null; created_at: string | null }[]>([]);
+  const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const { data } = await supabase
         .from('interactions')
         .select('id, outcome, created_at')
@@ -22,7 +25,28 @@ export default function FeedbackScreen() {
       setItems(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-feedback-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'interactions',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        () => {
+          load();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (

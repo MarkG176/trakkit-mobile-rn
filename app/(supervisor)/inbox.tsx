@@ -4,14 +4,17 @@ import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { Screen, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components/ui';
 
+type InboxMessage = { id: string; message?: string; created_at: string };
+
 export default function InboxScreen() {
   const { currentWorkspaceId } = useWorkspace();
-  const [messages, setMessages] = useState<{ id: string; message?: string; created_at: string }[]>([]);
+  const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentWorkspaceId) return;
+
     const load = async () => {
-      if (!currentWorkspaceId) return;
       const { data } = await supabase
         .from('supervisor_messages')
         .select('id, message, created_at')
@@ -22,7 +25,29 @@ export default function InboxScreen() {
       setMessages(data ?? []);
       setLoading(false);
     };
+
     load();
+
+    const channel = supabase
+      .channel(`supervisor-inbox-${currentWorkspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'supervisor_messages',
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
+        },
+        (payload) => {
+          const row = payload.new as InboxMessage;
+          setMessages((prev) => [row, ...prev.filter((m) => m.id !== row.id)].slice(0, 30));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [currentWorkspaceId]);
 
   return (
