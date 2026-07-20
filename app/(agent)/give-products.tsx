@@ -1,174 +1,70 @@
-// [CRM-0095] Give Products — giveaway cart with recipient and per-line interaction submit
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { useState } from 'react';
+import { Alert } from 'react-native';
+import { FormField } from '@/components/forms/FormField';
+import { GeoCapture } from '@/components/forms/GeoCapture';
 import { ComponentGate } from '@/components/ComponentGate';
-import { CartItem, ProductCart } from '@/components/sales/ProductCart';
-import { Screen, AppText, Button, Input, LoadingSpinner } from '@/components/ui';
-import { useInventory } from '@/hooks/useInventory';
-import { useProductFocusInventory } from '@/hooks/useProductFocusInventory';
-import { useInteractionForm } from '@/hooks/useInteractionForm';
-import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { colors, radius, spacing } from '@/theme';
+import { useAuth } from '@/providers/AuthProvider';
+import { workspaceService } from '@/services/workspaceService';
+import { writeWithOfflineQueue } from '@/services/offlineQueue';
+import { Screen, Button, AppText } from '@/components/ui';
+import { spacing } from '@/theme';
 
 export default function GiveProductsScreen() {
-  const router = useRouter();
-  const { currentWorkspaceId, currentWorkspaceLabel } = useWorkspace();
-  const { inventory, loading: inventoryLoading } = useInventory();
-  const { products: productFocusProducts, loading: productFocusLoading } =
-    useProductFocusInventory();
-  const { submitInteraction, loading } = useInteractionForm();
-
-  const isWholesale = currentWorkspaceLabel?.toLowerCase() === 'wholesale';
-  const sourceProducts = isWholesale ? productFocusProducts : inventory;
-  const sourceLoading = isWholesale ? productFocusLoading : inventoryLoading;
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
   const [recipientName, setRecipientName] = useState('');
-  const [notes, setNotes] = useState('');
-
-  useEffect(() => {
-    setCartItems([]);
-  }, [currentWorkspaceId]);
-
-  const products = useMemo(
-    () =>
-      sourceProducts.map((item) => ({
-        productVariantId: item.product_variant_id,
-        name: item.name,
-        sku: item.sku,
-        price: 0,
-        maxQuantity: isWholesale
-          ? 999
-          : 'amount_issued' in item
-            ? (item as { amount_issued: number }).amount_issued
-            : 999,
-      })),
-    [sourceProducts, isWholesale],
-  );
+  const [productName, setProductName] = useState('');
+  const [quantity, setQuantity] = useState('1');
+  const [engagementQuality, setEngagementQuality] = useState('');
+  const [lat, setLat] = useState<number | null>(null);
+  const [lon, setLon] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    if (cartItems.length === 0) {
-      Alert.alert('No products', 'Select at least one product to give away.');
-      return;
-    }
-    if (!recipientName.trim()) {
-      Alert.alert('Recipient required', 'Enter the recipient name.');
+    if (!user || !recipientName || !productName || lat == null) {
+      Alert.alert('Missing fields', 'Fill recipient, product, and wait for location.');
       return;
     }
 
-    let allOk = true;
-    for (const item of cartItems) {
-      const ok = await submitInteraction({
-        interactionType: 'giveaway',
-        customerName: recipientName.trim(),
-        notes,
-        sentiment: 0,
-        productVariantId: item.productVariantId,
-        quantity: item.quantity,
+    setLoading(true);
+    try {
+      const payload = workspaceService.ensureWorkspaceContext({
+        agent_id: user.id,
+        recipient_name: recipientName,
+        products_given: [{ name: productName, quantity: parseInt(quantity, 10) || 1 }],
+        total_items: parseInt(quantity, 10) || 1,
+        engagement_quality: engagementQuality || null,
+        location_lat: lat,
+        location_lng: lon,
+        recorded_at: new Date().toISOString(),
       });
-      if (!ok) {
-        allOk = false;
-        break;
-      }
-    }
 
-    if (allOk) {
-      Alert.alert('Giveaway recorded', 'Products handed out successfully.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-      setCartItems([]);
-      setRecipientName('');
-      setNotes('');
+      const { synced } = await writeWithOfflineQueue('giveaways', payload);
+      Alert.alert(synced ? 'Giveaway recorded' : 'Saved offline');
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <ComponentGate code="CRM-0095" redirectTo="/(agent)">
-      <Screen showBack style={{ flex: 1, padding: 0 }}>
-        <View style={styles.form}>
-          <Input
-            label="Recipient name"
-            value={recipientName}
-            onChangeText={setRecipientName}
-            placeholder="Customer or store contact"
-          />
-          <Input
-            label="Notes (optional)"
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Add giveaway notes…"
-            multiline
-            numberOfLines={2}
-            style={{ minHeight: 64, textAlignVertical: 'top' }}
-          />
-          <View style={styles.searchWrap}>
-            <Search size={16} color={colors.mutedForeground} style={styles.searchIcon} />
-            <TextInput
-              value={searchTerm}
-              onChangeText={setSearchTerm}
-              placeholder="Search products…"
-              placeholderTextColor={colors.mutedForeground}
-              style={styles.searchInput}
-            />
-          </View>
-        </View>
-
-        {sourceLoading ? (
-          <LoadingSpinner label="Loading products" />
-        ) : (
-          <View style={{ flex: 1, paddingHorizontal: spacing.md }}>
-            <ProductCart
-              mode="giveaway"
-              products={products}
-              cartItems={cartItems}
-              onCartChange={setCartItems}
-              searchTerm={searchTerm}
-              hideInventoryCounts={isWholesale}
-              onCheckoutPress={submit}
-              checkoutLabel="Record giveaway"
-              loading={loading}
-            />
-          </View>
-        )}
-
-        {cartItems.length > 0 ? (
-          <View style={styles.bottomSubmit}>
-            <AppText variant="secondary">
-              {cartItems.reduce((s, i) => s + i.quantity, 0)} item(s) selected
-            </AppText>
-            <Button onPress={submit} loading={loading}>
-              Submit giveaway
-            </Button>
-          </View>
-        ) : null}
+      <Screen scroll showBack>
+        <AppText variant="h3" style={{ fontWeight: '700', marginBottom: spacing.xs }}>
+          Give products
+        </AppText>
+        <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
+          Record promotional giveaways or samples handed out.
+        </AppText>
+        <FormField label="Recipient name" value={recipientName} onChangeText={setRecipientName} />
+        <FormField label="Product" value={productName} onChangeText={setProductName} />
+        <FormField label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="number-pad" />
+        <FormField label="Engagement quality (optional)" value={engagementQuality} onChangeText={setEngagementQuality} />
+        <GeoCapture onLocation={(a, b) => { setLat(a); setLon(b); }} />
+        <Button onPress={submit} loading={loading}>
+          Submit giveaway
+        </Button>
       </Screen>
     </ComponentGate>
   );
 }
-
-const styles = StyleSheet.create({
-  form: { paddingHorizontal: spacing.md, paddingTop: spacing.xs },
-  searchWrap: { position: 'relative', justifyContent: 'center', marginBottom: spacing.sm },
-  searchIcon: { position: 'absolute', left: 12, zIndex: 1 },
-  searchInput: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingLeft: 40,
-    paddingRight: spacing.md,
-    backgroundColor: colors.card,
-    fontSize: 16,
-    color: colors.foreground,
-  },
-  bottomSubmit: {
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.card,
-    gap: spacing.sm,
-  },
-});

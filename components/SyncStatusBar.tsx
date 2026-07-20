@@ -1,4 +1,3 @@
-// [CRM-0003] Status Bar — sync/connectivity indicator under header
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';

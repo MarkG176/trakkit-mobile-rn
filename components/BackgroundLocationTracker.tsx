@@ -1,4 +1,3 @@
-// [CRM-0005] Background Location Tracker — 15-min background GPS while checked in
 import { useEffect } from 'react';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { useProjectComponents } from '@/hooks/useProjectComponents';

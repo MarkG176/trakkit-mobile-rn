@@ -70,13 +70,6 @@
         {
           "cameraPermission": "Allow TraKKiT to access your camera for attendance selfies."
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/icon.png",
-          "color": "#00A3AD"
-        }
       ]
     ],
     "experiments": {

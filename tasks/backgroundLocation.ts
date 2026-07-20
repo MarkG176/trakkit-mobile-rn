@@ -35,7 +35,7 @@ export async function startBackgroundTracking(): Promise<boolean> {
 
   await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
     accuracy: Location.Accuracy.Balanced,
-    timeInterval: 15 * 60 * 1000,
+    timeInterval: 5 * 60 * 1000,
     distanceInterval: 50,
     foregroundService: {
       notificationTitle: 'TraKKiT',

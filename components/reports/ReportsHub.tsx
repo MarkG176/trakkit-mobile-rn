@@ -5,10 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@/components/forms/FormField';
 import { AppText, Button, Card } from '@/components/ui';
-import { useAuth } from '@/providers/AuthProvider';
-import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { supabase } from '@/lib/supabase';
-import { uploadReportImage } from '@/utils/uploadStoreImage';
 import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 import { stockReport } from './shared';
@@ -40,6 +36,7 @@ function StockLaunchButton({
     <Pressable
       onPress={onPress}
       hitSlop={hitSlop}
+      delayPressIn={0}
       style={({ pressed }) => ({
         minHeight: 88,
         borderRadius: radius.md,
@@ -81,6 +78,7 @@ function MoreReportTile({ title, icon, onPress }: Omit<ReportTileItem, 'key' | '
     <Pressable
       onPress={onPress}
       hitSlop={hitSlop}
+      delayPressIn={0}
       style={({ pressed }) => ({
         flexGrow: 1,
         flexBasis: '47%',
@@ -288,8 +286,6 @@ export function ReportLaunchCard({
 }
 
 export function ReportsNotesCard() {
-  const { user } = useAuth();
-  const { currentWorkspaceId } = useWorkspace();
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -302,30 +298,12 @@ export function ReportsNotesCard() {
   }, []);
 
   const save = async () => {
-    if (!notes.trim()) {
-      Alert.alert('Please enter some notes');
-      return;
-    }
-    if (!user || !currentWorkspaceId) {
-      Alert.alert('No workspace selected');
-      return;
-    }
-
     setSaving(true);
     try {
       await AsyncStorage.setItem(NOTES_KEY, notes);
-      const { error } = await supabase.from('notes').insert({
-        agent_id: user.id,
-        workspace_id: currentWorkspaceId,
-        content: notes.trim(),
-      });
-      if (error) throw error;
       Alert.alert('Notes saved');
-      setNotes('');
-      await AsyncStorage.removeItem(NOTES_KEY);
-    } catch (err) {
-      console.error('Could not save notes', err);
-      Alert.alert('Could not save notes', 'Draft kept on device.');
+    } catch {
+      Alert.alert('Could not save notes');
     } finally {
       setSaving(false);
     }
@@ -361,9 +339,7 @@ export function ReportsNotesCard() {
 }
 
 export function ReportsImagesCard() {
-  const { user } = useAuth();
   const [uris, setUris] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
 
   const browse = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -393,32 +369,6 @@ export function ReportsImagesCard() {
     });
     if (!result.canceled && result.assets[0]) {
       setUris((prev) => [...prev, result.assets[0].uri]);
-    }
-  };
-
-  const upload = async () => {
-    if (!user || uris.length === 0) {
-      Alert.alert('Please select images to upload');
-      return;
-    }
-    setUploading(true);
-    try {
-      const results = await Promise.all(uris.map((uri) => uploadReportImage(uri, user.id)));
-      const failed = results.filter((url) => !url).length;
-      if (failed === results.length) {
-        Alert.alert('Upload failed', 'Could not upload images to storage.');
-      } else if (failed > 0) {
-        Alert.alert('Partial upload', `${results.length - failed} uploaded, ${failed} failed.`);
-        setUris([]);
-      } else {
-        Alert.alert('Images uploaded');
-        setUris([]);
-      }
-    } catch (err) {
-      console.error('Upload error', err);
-      Alert.alert('Upload failed');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -480,26 +430,15 @@ export function ReportsImagesCard() {
       </Pressable>
 
       {uris.length > 0 ? (
-        <>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
-            {uris.map((uri) => (
-              <Image
-                key={uri}
-                source={{ uri }}
-                style={{ width: 72, height: 72, borderRadius: radius.md }}
-              />
-            ))}
-          </View>
-          <Button
-            variant="outline"
-            onPress={upload}
-            loading={uploading}
-            style={{ marginTop: spacing.md }}
-            icon={<Ionicons name="cloud-upload-outline" size={18} color={colors.foreground} />}
-          >
-            Upload Images
-          </Button>
-        </>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
+          {uris.map((uri) => (
+            <Image
+              key={uri}
+              source={{ uri }}
+              style={{ width: 72, height: 72, borderRadius: radius.md }}
+            />
+          ))}
+        </View>
       ) : null}
     </Card>
   );
