@@ -1,3 +1,4 @@
+// [CRM-0099] Reports — stock capabilities, price report, notes & images hub
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { EveningReportForm } from '@/components/reports/EveningReportForm';
@@ -16,6 +17,10 @@ import {
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { workspaceService } from '@/services/workspaceService';
+import {
+  getStockReportCapabilities,
+  hasAnyStockReportCapability,
+} from '@/utils/stockReportConfig';
 import { Screen, EmptyMessage } from '@/components/ui';
 import type { StockLevelValue } from '@/components/reports/shared';
 
@@ -64,7 +69,7 @@ function formForActive(active: Exclude<ActiveReport, null>, eveningCode: Evening
 
 export default function ReportsScreen() {
   const { currentWorkspaceLabel } = useWorkspace();
-  const { isEnabled } = useProjectComponents();
+  const { isEnabled, codes } = useProjectComponents();
   const [active, setActive] = useState<ActiveReport>(null);
   const [availabilityDialog, setAvailabilityDialog] = useState<AvailabilityDialog>(null);
   const [countOpen, setCountOpen] = useState(false);
@@ -73,15 +78,19 @@ export default function ReportsScreen() {
   const teamType = currentWorkspaceLabel?.toLowerCase() ?? '';
   const inStore = teamType.includes('instore') || workspaceService.isCurrentWorkspaceInStoreMode();
 
-  /** Web: CRM-0022 ≈ availability; CRM-0021 ≈ morning count (chain after availability when in-store). */
-  const showMorningAvailability = isEnabled('CRM-0022') || isEnabled('CRM-0021');
-  const showMorningCount = isEnabled('CRM-0021') && inStore;
+  const stockCaps = useMemo(() => getStockReportCapabilities(codes), [codes]);
+  const showMorningAvailability = stockCaps.morningAvailability;
+  const showMorningCount = stockCaps.morningCount && inStore;
+  const showEveningStock =
+    stockCaps.eveningAvailability || stockCaps.eveningCount || isEnabled('CRM-0019');
+
   const eveningCode = useMemo(
-    () => pickEveningCode(isEnabled, teamType, inStore),
-    [isEnabled, teamType, inStore],
+    () => (showEveningStock ? pickEveningCode(isEnabled, teamType, inStore) : null),
+    [showEveningStock, isEnabled, teamType, inStore],
   );
   const showEvening = eveningCode != null;
-  const showPrice = isEnabled('CRM-0025');
+  /** Price Report is always available on the reports hub. */
+  const showPrice = true;
 
   const handleMorningComplete = useCallback(
     (levels: Record<string, StockLevelValue>) => {
@@ -95,15 +104,21 @@ export default function ReportsScreen() {
   );
 
   const morning = useMemo((): ReportTileItem | null => {
-    if (!showMorningAvailability) return null;
+    if (!showMorningAvailability && !stockCaps.morningCount) return null;
     return {
       key: 'morning',
-      title: 'Stock Availability',
+      title: stockCaps.morningAvailability ? 'Stock Availability' : 'Opening Stock Count',
       icon: 'sunny-outline',
       primary: true,
-      onPress: () => setAvailabilityDialog('morning'),
+      onPress: () => {
+        if (stockCaps.morningAvailability) {
+          setAvailabilityDialog('morning');
+        } else {
+          setCountOpen(true);
+        }
+      },
     };
-  }, [showMorningAvailability]);
+  }, [showMorningAvailability, stockCaps.morningAvailability, stockCaps.morningCount]);
 
   const evening = useMemo((): ReportTileItem | null => {
     if (!showEvening) return null;
@@ -157,7 +172,11 @@ export default function ReportsScreen() {
     return items;
   }, [showPrice, eveningCode, isEnabled]);
 
-  const hasAny = morning || evening || moreTiles.length > 0;
+  const hasAny =
+    morning ||
+    evening ||
+    moreTiles.length > 0 ||
+    hasAnyStockReportCapability(stockCaps);
 
   if (active) {
     return (

@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { LanguageProvider } from '@/hooks/useLanguage';
 import { AppShell } from '@/components/AppShell';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
@@ -16,6 +17,7 @@ import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracke
 import { LoadingSpinner } from '@/components/ui';
 import { useUserRole } from '@/hooks/useUserRole';
 import { colors } from '@/theme';
+import 'react-native-gesture-handler';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -80,14 +82,16 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <WorkspaceProvider>
-              <AgentStatusProvider>
-                <BackgroundLocationTracker />
-                <RootFrame>
-                  <AuthGate>
-                    <Slot />
-                  </AuthGate>
-                </RootFrame>
-              </AgentStatusProvider>
+              <LanguageProvider>
+                <AgentStatusProvider>
+                  <BackgroundLocationTracker />
+                  <RootFrame>
+                    <AuthGate>
+                      <Slot />
+                    </AuthGate>
+                  </RootFrame>
+                </AgentStatusProvider>
+              </LanguageProvider>
             </WorkspaceProvider>
           </AuthProvider>
         </QueryClientProvider>

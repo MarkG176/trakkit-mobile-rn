@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { workspaceService } from '@/services/workspaceService';
 import { signInWithGoogleOAuth } from '@/utils/oauth';
+import { registerDevicePushToken } from '@/services/pushTokens';
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         workspaceService.reset();
       } else if (nextSession?.user) {
         setTimeout(() => workspaceService.initialize(nextSession.user), 0);
+        setTimeout(() => {
+          void registerDevicePushToken(nextSession.user.id);
+        }, 500);
       }
 
       setLoading(false);
@@ -40,6 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(existing?.user ?? null);
       if (existing?.user) {
         setTimeout(() => workspaceService.initialize(existing.user), 0);
+        setTimeout(() => {
+          void registerDevicePushToken(existing.user.id);
+        }, 500);
       }
       setLoading(false);
     });

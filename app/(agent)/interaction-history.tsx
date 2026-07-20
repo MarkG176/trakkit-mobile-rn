@@ -1,43 +1,65 @@
+// [CRM-0105] Interaction History — paginated interaction list
 import { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { MessageSquare } from 'lucide-react-native';
 import { ComponentGate } from '@/components/ComponentGate';
+import { ActivityHistoryList, type HistoryRow } from '@/components/history/ActivityHistoryList';
 import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
+import { Screen } from '@/components/ui';
+import { colors } from '@/theme';
 
 export default function InteractionHistoryScreen() {
   const { user } = useAuth();
-  const [items, setItems] = useState<{ id: string; interaction_type: string | null; created_at: string | null }[]>([]);
+  const { currentWorkspaceId } = useWorkspace();
+  const router = useRouter();
+  const [items, setItems] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      if (!user) return;
+      if (!user || !currentWorkspaceId) {
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase
         .from('interactions')
-        .select('id, interaction_type, created_at')
+        .select('id, interaction_type, customer_name, created_at, outcome')
         .eq('agent_id', user.id)
+        .eq('workspace_id', currentWorkspaceId)
         .order('created_at', { ascending: false })
-        .limit(30);
-      setItems(data ?? []);
+        .limit(200);
+
+      setItems(
+        (data ?? [])
+          .filter((row) => row.created_at)
+          .map((row) => ({
+            id: row.id,
+            title: row.customer_name || (row.interaction_type ?? 'Interaction').replace(/_/g, ' '),
+            subtitle: (row.interaction_type ?? 'interaction').replace(/_/g, ' '),
+            meta: row.outcome,
+            timestamp: row.created_at!,
+            badge: (row.interaction_type ?? 'interaction').replace(/_/g, ' '),
+            leading: <MessageSquare size={20} color={colors.primary} />,
+          })),
+      );
       setLoading(false);
     };
-    load();
-  }, [user?.id]);
+    void load();
+  }, [user?.id, currentWorkspaceId]);
 
   return (
     <ComponentGate code="CRM-0105">
-      <Screen scroll>
-        {loading ? (
-          <LoadingSpinner label="Loading history" />
-        ) : (
-          items.map((item) => (
-            <ListItemCard
-              key={item.id}
-              title={(item.interaction_type ?? 'interaction').replace(/_/g, ' ')}
-              subtitle={item.created_at ? new Date(item.created_at).toLocaleString() : undefined}
-            />
-          ))
-        )}
+      <Screen>
+        <ActivityHistoryList
+          items={items}
+          loading={loading}
+          emptyLabel="No interactions yet."
+          onPressItem={(item) =>
+            router.push(`/(agent)/activity-detail?id=${item.id}` as never)
+          }
+        />
       </Screen>
     </ComponentGate>
   );

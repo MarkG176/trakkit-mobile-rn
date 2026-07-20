@@ -55,7 +55,7 @@ const TICKET_OPTIONS: {
     label: 'Bug Support',
     description: 'Report app bugs or technical issues',
     icon: 'bug',
-    accent: '#FFE5E3',
+    accent: colors.muted,
     iconColor: colors.destructive,
   },
   {
@@ -63,7 +63,7 @@ const TICKET_OPTIONS: {
     label: 'Inventory Request',
     description: 'Report missing or incorrect inventory',
     icon: 'cube',
-    accent: '#FFF4D6',
+    accent: colors.muted,
     iconColor: colors.warning,
   },
   {
