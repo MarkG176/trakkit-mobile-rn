@@ -30,7 +30,7 @@ type ActiveReport =
 
 type EveningCode = 'CRM-0019' | 'CRM-0020' | 'CRM-0023';
 
-type AvailabilityDialog = 'morning' | null;
+type AvailabilityDialog = 'morning' | 'evening' | null;
 
 function pickEveningCode(
   isEnabled: (code: string) => boolean,
@@ -45,7 +45,11 @@ function pickEveningCode(
   return null;
 }
 
-function formForActive(active: Exclude<ActiveReport, null>, eveningCode: EveningCode | null): ReactNode {
+function formForActive(
+  active: Exclude<ActiveReport, null>,
+  eveningCode: EveningCode | null,
+  stockLevels: Record<string, StockLevelValue>,
+): ReactNode {
   switch (active) {
     case 'evening':
       if (eveningCode === 'CRM-0020') return <ClosingReportForm />;
@@ -58,7 +62,7 @@ function formForActive(active: Exclude<ActiveReport, null>, eveningCode: Evening
     case 'seeding_evening':
       return <SeedingEveningReportForm />;
     case 'price':
-      return <PriceReportForm />;
+      return <PriceReportForm stockLevels={stockLevels} />;
   }
 }
 
@@ -111,9 +115,17 @@ export default function ReportsScreen() {
       key: 'evening',
       title: 'Start Evening Report',
       icon: 'moon-outline',
-      onPress: () => setActive('evening'),
+      onPress: () => {
+        if (eveningCode === 'CRM-0020' || eveningCode === 'CRM-0023') {
+          setActive('evening');
+        } else if (showMorningAvailability) {
+          setAvailabilityDialog('evening');
+        } else {
+          setActive('evening');
+        }
+      },
     };
-  }, [showEvening]);
+  }, [showEvening, eveningCode, showMorningAvailability]);
 
   const moreTiles = useMemo((): ReportTileItem[] => {
     const items: ReportTileItem[] = [];
@@ -163,7 +175,7 @@ export default function ReportsScreen() {
     return (
       <ComponentGate code="CRM-0099" redirectTo="/(agent)">
         <Screen scroll showBack onBack={() => setActive(null)}>
-          {formForActive(active, eveningCode)}
+          {formForActive(active, eveningCode, stockLevels)}
         </Screen>
       </ComponentGate>
     );
@@ -191,6 +203,14 @@ export default function ReportsScreen() {
         reportType="morning"
         requireAll
         onComplete={handleMorningComplete}
+      />
+
+      <StockReportDialog
+        open={availabilityDialog === 'evening'}
+        onOpenChange={(next) => {
+          if (!next) setAvailabilityDialog(null);
+        }}
+        reportType="evening"
       />
 
       <OpeningStockCountDialog

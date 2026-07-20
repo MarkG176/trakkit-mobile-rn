@@ -1,238 +1,155 @@
 /**
- * Stock availability select — static bordered trigger; portaled popover (z~100).
- * Fade + zoom + slide-from-top (~4px), matching Radix SelectContent.
+ * Stock-level picker — Material-style exposed dropdown (inline expand).
+ * No nested Modal (safe inside ReportDialogShell). No status icons — text hierarchy only.
+ *
+ * Android / M3 cues:
+ * - Outlined field shows current selection + trailing chevron
+ * - Menu opens below field, elevated, single-line items
+ * - Selected item via weight + fill (not icon clutter)
  */
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Modal,
-  Pressable,
-  View,
-  type LayoutRectangle,
-  type View as RNView,
-} from 'react-native';
+import { memo, useCallback } from 'react';
+import { Platform, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui';
-import { colors, hitSlop, radius, spacing } from '@/theme';
-import {
-  STOCK_LEVEL_OPTIONS,
-  stockReport,
-  stockReportBorder,
-  type StockLevelValue,
-} from './shared';
-
-const TRIGGER_HEIGHT = 44;
-const POPOVER_MS = 150;
+import { colors, hitSlop, radius, spacing, typography } from '@/theme';
+import { STOCK_LEVEL_OPTIONS, type StockLevelValue } from './shared';
 
 type StockLevelSelectProps = {
   value: StockLevelValue | '';
   onChange: (value: StockLevelValue) => void;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 };
 
 export const StockLevelSelect = memo(function StockLevelSelect({
   value,
   onChange,
-  open,
-  onOpenChange,
+  expanded,
+  onExpandedChange,
 }: StockLevelSelectProps) {
-  const triggerRef = useRef<RNView>(null);
-  const [localValue, setLocalValue] = useState(value);
-  const [anchor, setAnchor] = useState<LayoutRectangle | null>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
-  useEffect(() => {
-    if (open && anchor) {
-      setMenuVisible(true);
-      anim.setValue(0);
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: POPOVER_MS,
-        useNativeDriver: true,
-      }).start();
-      return;
-    }
-    if (!open) {
-      Animated.timing(anim, {
-        toValue: 0,
-        duration: POPOVER_MS,
-        useNativeDriver: true,
-      }).start(({ finished }) => {
-        if (finished) setMenuVisible(false);
-      });
-    }
-  }, [open, anchor, anim]);
-
-  const selected = STOCK_LEVEL_OPTIONS.find((o) => o.value === localValue);
-
-  const openMenu = useCallback(() => {
-    if (open) {
-      onOpenChange(false);
-      return;
-    }
-    triggerRef.current?.measureInWindow((x, y, width, height) => {
-      setAnchor({ x, y, width, height });
-      onOpenChange(true);
-    });
-  }, [open, onOpenChange]);
+  const selected = STOCK_LEVEL_OPTIONS.find((o) => o.value === value);
 
   const pick = useCallback(
     (next: StockLevelValue) => {
-      setLocalValue(next);
-      onOpenChange(false);
       onChange(next);
+      onExpandedChange(false);
     },
-    [onChange, onOpenChange],
+    [onChange, onExpandedChange],
   );
 
-  const popoverOpacity = anim;
-  const popoverScale = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.95, 1],
-  });
-  /** Radix slide-in-from-top-2 (~8px → 0 when menu opens below trigger). */
-  const popoverTranslateY = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-4, 0],
-  });
-
   return (
-    <>
-      <View ref={triggerRef} collapsable={false}>
-        <Pressable
-          onPress={openMenu}
-          hitSlop={hitSlop}
-          delayPressIn={0}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: open }}
-          style={({ pressed }) => ({
-            height: TRIGGER_HEIGHT,
-            ...stockReportBorder,
-            borderRadius: radius.md,
-            borderColor: open ? stockReport.primary : stockReport.border,
-            backgroundColor: pressed ? stockReport.panel : colors.card,
-            paddingHorizontal: 12,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: spacing.sm,
-          })}
-        >
-          {selected ? (
-            <AppText
-              numberOfLines={1}
-              style={{
-                flex: 1,
-                fontSize: 14,
-                fontWeight: '500',
-                color: stockReport.heading,
-                flexShrink: 1,
-              }}
-            >
-              {selected.label}
-            </AppText>
-          ) : (
-            <AppText
-              numberOfLines={1}
-              style={{ flex: 1, fontSize: 14, color: colors.secondaryForeground }}
-            >
-              Select stock level...
-            </AppText>
-          )}
-          <Ionicons name="chevron-down" size={16} color={colors.secondaryForeground} />
-        </Pressable>
-      </View>
-
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={() => onOpenChange(false)}
+    <View>
+      <AppText
+        style={{
+          ...typography.caption,
+          color: colors.secondaryForeground,
+          marginBottom: spacing.xs,
+          fontWeight: '500',
+        }}
       >
-        <View style={{ flex: 1 }} pointerEvents="box-none">
-          <Pressable
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            onPress={() => onOpenChange(false)}
-            accessibilityLabel="Dismiss stock level menu"
-          />
-          {anchor ? (
-            <Animated.View
-              pointerEvents="box-none"
-              style={{
-                position: 'absolute',
-                top: anchor.y + anchor.height + 4,
-                left: anchor.x,
-                width: anchor.width,
-                opacity: popoverOpacity,
-                transform: [{ scale: popoverScale }, { translateY: popoverTranslateY }],
-                zIndex: 100,
-                elevation: 24,
-              }}
-            >
-              <View
-                style={{
-                  ...stockReportBorder,
-                  borderRadius: radius.md,
-                  backgroundColor: colors.card,
-                  ...stockReport.shadowSm,
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                  elevation: 24,
-                  paddingVertical: 4,
-                }}
-              >
-                {STOCK_LEVEL_OPTIONS.map((opt) => {
-                  const active = localValue === opt.value;
-                  return (
-                    <Pressable
-                      key={opt.value}
-                      onPress={() => pick(opt.value)}
-                      delayPressIn={0}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                      style={({ pressed }) => ({
-                        height: 40,
-                        marginHorizontal: 4,
-                        marginVertical: 2,
-                        paddingHorizontal: 12,
-                        borderRadius: radius.sm,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 8,
-                        backgroundColor:
-                          active || pressed ? stockReport.primaryLight : 'transparent',
-                      })}
-                    >
-                      <Ionicons name={opt.icon} size={16} color={opt.color} />
-                      <AppText
-                        style={{
-                          fontSize: 14,
-                          fontWeight: '500',
-                          color:
-                            opt.value === 'not_sold'
-                              ? colors.secondaryForeground
-                              : stockReport.heading,
-                          flexShrink: 1,
-                        }}
-                      >
-                        {opt.label}
-                      </AppText>
-                    </Pressable>
-                  );
+        Stock level
+      </AppText>
+
+      {/* Exposed dropdown anchor — outlined field */}
+      <Pressable
+        onPress={() => onExpandedChange(!expanded)}
+        hitSlop={hitSlop}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={
+          selected ? `Stock level ${selected.label}` : 'Select stock level'
+        }
+        style={({ pressed }) => ({
+          minHeight: 48,
+          borderWidth: 1,
+          borderColor: expanded ? colors.primary : colors.border,
+          borderRadius: radius.md,
+          backgroundColor: pressed ? colors.muted : colors.card,
+          paddingHorizontal: spacing.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+        })}
+      >
+        <AppText
+          numberOfLines={1}
+          style={{
+            flex: 1,
+            fontSize: typography.body.fontSize,
+            fontWeight: selected ? '500' : '400',
+            color: selected ? colors.foreground : colors.secondaryForeground,
+            flexShrink: 1,
+          }}
+        >
+          {selected?.label ?? 'Select stock level...'}
+        </AppText>
+        <Ionicons
+          name={expanded ? 'caret-up' : 'caret-down'}
+          size={16}
+          color={colors.secondaryForeground}
+        />
+      </Pressable>
+
+      {/* Menu surface — below field, elevated (Android exposed menu) */}
+      {expanded ? (
+        <View
+          style={{
+            marginTop: spacing.xs,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: radius.md,
+            backgroundColor: colors.card,
+            overflow: 'hidden',
+            ...Platform.select({
+              android: { elevation: 4 },
+              ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+              },
+              default: {},
+            }),
+          }}
+        >
+          {STOCK_LEVEL_OPTIONS.map((opt, index) => {
+            const active = value === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => pick(opt.value)}
+                hitSlop={hitSlop}
+                accessibilityRole="menuitem"
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => ({
+                  minHeight: 48,
+                  paddingHorizontal: spacing.md,
+                  justifyContent: 'center',
+                  borderTopWidth: index === 0 ? 0 : 1,
+                  borderTopColor: colors.border,
+                  backgroundColor: active
+                    ? colors.primaryLight
+                    : pressed
+                      ? colors.muted
+                      : colors.card,
                 })}
-              </View>
-            </Animated.View>
-          ) : null}
+              >
+                <AppText
+                  numberOfLines={1}
+                  style={{
+                    fontSize: typography.body.fontSize,
+                    fontWeight: active ? '600' : '400',
+                    color: colors.foreground,
+                  }}
+                >
+                  {opt.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
         </View>
-      </Modal>
-    </>
+      ) : null}
+    </View>
   );
 });
 
@@ -240,59 +157,47 @@ type StockProductRowProps = {
   productVariantId: string;
   name: string;
   value: StockLevelValue | '';
-  open: boolean;
-  onOpenChange: (productVariantId: string | null) => void;
+  expanded: boolean;
+  onExpandedChange: (productVariantId: string | null) => void;
   onChange: (productVariantId: string, value: StockLevelValue) => void;
 };
 
-/** Static product card — no expand/collapse; status icon beside name when set. */
+/** Bordered product card with exposed stock-level dropdown. */
 export const StockProductRow = memo(function StockProductRow({
   productVariantId,
   name,
   value,
-  open,
-  onOpenChange,
+  expanded,
+  onExpandedChange,
   onChange,
 }: StockProductRowProps) {
-  const status = value ? STOCK_LEVEL_OPTIONS.find((o) => o.value === value) : undefined;
-
   return (
     <View
       style={{
-        ...stockReportBorder,
+        borderWidth: 1,
+        borderColor: colors.border,
         borderRadius: radius.md,
         backgroundColor: colors.card,
-        padding: 12,
-        marginBottom: 12,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
       }}
     >
-      <View
+      <AppText
         style={{
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          gap: 8,
-          marginBottom: 8,
+          fontSize: typography.body.fontSize,
+          fontWeight: '600',
+          color: colors.foreground,
+          marginBottom: spacing.md,
+          flexShrink: 1,
+          lineHeight: 22,
         }}
       >
-        {status ? (
-          <Ionicons name={status.icon} size={16} color={status.color} style={{ marginTop: 2 }} />
-        ) : null}
-        <AppText
-          style={{
-            fontWeight: '500',
-            fontSize: 14,
-            color: stockReport.heading,
-            flex: 1,
-            flexShrink: 1,
-          }}
-        >
-          {name}
-        </AppText>
-      </View>
+        {name}
+      </AppText>
       <StockLevelSelect
         value={value}
-        open={open}
-        onOpenChange={(next) => onOpenChange(next ? productVariantId : null)}
+        expanded={expanded}
+        onExpandedChange={(next) => onExpandedChange(next ? productVariantId : null)}
         onChange={(next) => onChange(productVariantId, next)}
       />
     </View>

@@ -1,5 +1,6 @@
 /**
- * Shared Radix-like dialog shell: overlay fade + panel fade/zoom/slide (~200ms).
+ * Centered modal dialog shell for report forms.
+ * Single Modal layer — children must not open nested Modals (use inline expanders).
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -12,7 +13,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui';
 import { colors, hitSlop, radius, spacing } from '@/theme';
-import { stockReport } from './shared';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 const DIALOG_MS = 200;
@@ -116,13 +116,14 @@ export function ReportDialogShell({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            backgroundColor: 'rgba(0,0,0,0.55)',
             opacity: overlayAnim,
-            zIndex: 50,
           }}
         />
+
+        {/* Dismiss only taps outside the panel */}
         <Pressable
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           onPress={close}
           accessibilityLabel="Close dialog"
         />
@@ -134,7 +135,7 @@ export function ReportDialogShell({
             maxHeight: maxPanelH,
             opacity: panelAnim,
             transform: [{ scale: panelScale }, { translateY: panelTranslateY }],
-            zIndex: 50,
+            zIndex: 1,
             elevation: 16,
           }}
         >
@@ -143,13 +144,9 @@ export function ReportDialogShell({
               backgroundColor: colors.card,
               borderRadius: radius.lg,
               borderWidth: 1,
-              borderColor: stockReport.border,
+              borderColor: colors.border,
               padding: spacing.lg,
               maxHeight: maxPanelH,
-              ...stockReport.shadowSm,
-              shadowOpacity: 0.2,
-              shadowRadius: 16,
-              elevation: 16,
             }}
           >
             <View
@@ -160,12 +157,12 @@ export function ReportDialogShell({
                 marginBottom: spacing.sm,
               }}
             >
-              <Ionicons name={icon} size={20} color={stockReport.heading} />
+              <Ionicons name={icon} size={20} color={colors.foreground} />
               <AppText
                 variant="h3"
                 style={{
                   fontWeight: '700',
-                  color: stockReport.heading,
+                  color: colors.foreground,
                   flex: 1,
                   flexShrink: 1,
                 }}

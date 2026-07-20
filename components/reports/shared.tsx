@@ -245,6 +245,66 @@ export function reportAlert(synced: boolean) {
   Alert.alert(synced ? 'Report submitted' : 'Saved offline');
 }
 
+export async function submitNoteRow(
+  payload: Record<string, unknown>,
+): Promise<{ synced: boolean }> {
+  const row = workspaceService.ensureWorkspaceContext(payload);
+  const { synced } = await writeWithOfflineQueue('notes', row);
+  return { synced };
+}
+
+export function formatWorkMinutes(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
+export async function fetchTodaySalesByProduct(
+  agentId: string,
+  workDate: string,
+): Promise<Record<string, number>> {
+  const { data } = await supabase
+    .from('daily_sales_tracking')
+    .select('product_variant_id, quantity_sold')
+    .eq('agent_id', agentId)
+    .eq('work_date', workDate);
+
+  const totals: Record<string, number> = {};
+  for (const row of data ?? []) {
+    if (!row.product_variant_id) continue;
+    totals[row.product_variant_id] =
+      (totals[row.product_variant_id] ?? 0) + (row.quantity_sold ?? 0);
+  }
+  return totals;
+}
+
+export async function fetchTodayMorningOpeningStock(
+  agentId: string,
+  workDate: string,
+): Promise<Record<string, number>> {
+  const { data } = await supabase
+    .from('daily_stock_reports')
+    .select('product_variant_id, opening_stock')
+    .eq('agent_id', agentId)
+    .eq('work_date', workDate)
+    .eq('report_type', 'morning');
+
+  const map: Record<string, number> = {};
+  for (const row of data ?? []) {
+    if (row.product_variant_id && row.opening_stock != null) {
+      map[row.product_variant_id] = row.opening_stock;
+    }
+  }
+  return map;
+}
+
+export async function fetchTodayMorningStockCounts(
+  agentId: string,
+  workDate: string,
+): Promise<Record<string, number>> {
+  return fetchTodayMorningOpeningStock(agentId, workDate);
+}
+
 interface SkuCountFieldProps {
   label: string;
   value: string;

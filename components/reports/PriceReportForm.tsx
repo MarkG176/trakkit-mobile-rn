@@ -1,87 +1,143 @@
-import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Alert,
+  Animated,
+  PanResponder,
+  Pressable,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@/components/forms/FormField';
-import { AppText, Button, Card, ChipSelect } from '@/components/ui';
+import { AppText, Button, Card } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
-import { spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 import {
   parsePrice,
   reportAlert,
+  STOCK_LEVEL_OPTIONS,
+  stockReport,
   submitPriceRows,
   todayWorkDate,
   useReportSkus,
+  type StockLevelValue,
 } from './shared';
 
-const STOCK_LEVELS = [
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-  { value: 'out', label: 'Out of stock' },
-];
+const SWIPE_THRESHOLD = 48;
 
-type PriceRowState = {
-  competitorPrice: string;
-  ourPrice: string;
-  measurement: string;
-  stockLevel: string;
+type PriceReportFormProps = {
+  stockLevels?: Record<string, StockLevelValue>;
 };
 
-const EMPTY_ROW: PriceRowState = {
-  competitorPrice: '',
-  ourPrice: '',
-  measurement: '',
-  stockLevel: '',
-};
-
-export function PriceReportForm() {
+export function PriceReportForm({ stockLevels = {} }: PriceReportFormProps) {
   const { user } = useAuth();
+  const { width: screenW } = useWindowDimensions();
   const { skus, loading: skusLoading } = useReportSkus();
-  const [rows, setRows] = useState<Record<string, PriceRowState>>({});
+  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const translateX = useRef(new Animated.Value(0)).current;
   const currency = workspaceService.getProjectCurrencyCode();
 
-  const updateRow = (id: string, patch: Partial<PriceRowState>) => {
-    setRows((prev) => ({
-      ...prev,
-      [id]: { ...(prev[id] ?? EMPTY_ROW), ...patch },
-    }));
-  };
+  const eligible = useMemo(
+    () =>
+      skus.filter((sku) => {
+        const level = stockLevels[sku.productVariantId];
+        return level === 'available' || level === 'low_stock' || level === 'unavailable';
+      }),
+    [skus, stockLevels],
+  );
+
+  const total = eligible.length;
+  const current = eligible[page];
+  const filledCount = eligible.filter((sku) => {
+    const price = parsePrice(prices[sku.productVariantId] ?? '');
+    return price != null;
+  }).length;
+  const allFilled = total > 0 && filledCount === total;
+
+  const goToPage = useCallback(
+    (next: number) => {
+      if (next < 0 || next >= total) return;
+      setPage(next);
+      translateX.setValue(0);
+    },
+    [total, translateX],
+  );
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) =>
+          Math.abs(g.dx) > Math.abs(g.dy) && Math.abs(g.dx) > 8,
+        onPanResponderMove: (_, g) => {
+          translateX.setValue(g.dx);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (g.dx <= -SWIPE_THRESHOLD && page < total - 1) {
+            Animated.timing(translateX, {
+              toValue: -screenW,
+              duration: 180,
+              useNativeDriver: true,
+            }).start(() => goToPage(page + 1));
+            return;
+          }
+          if (g.dx >= SWIPE_THRESHOLD && page > 0) {
+            Animated.timing(translateX, {
+              toValue: screenW,
+              duration: 180,
+              useNativeDriver: true,
+            }).start(() => goToPage(page - 1));
+            return;
+          }
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 0,
+          }).start();
+        },
+      }),
+    [goToPage, page, screenW, total, translateX],
+  );
 
   const submit = async () => {
     if (!user) return;
 
-    const payloads = skus
+    if (!allFilled) {
+      Alert.alert('Incomplete report', 'Enter a price for every eligible product.');
+      return;
+    }
+
+    const payloads = eligible
       .map((sku) => {
-        const row = rows[sku.productVariantId] ?? EMPTY_ROW;
-        const competitorPrice = parsePrice(row.competitorPrice);
-        if (competitorPrice == null) return null;
+        const price = parsePrice(prices[sku.productVariantId] ?? '');
+        if (price == null) return null;
         return {
           agent_id: user.id,
           product_variant_id: sku.productVariantId,
           work_date: todayWorkDate(),
-          price: competitorPrice,
-          sku: sku.name,
-          measurement: row.measurement.trim() || row.ourPrice.trim() || null,
-          stock_level: row.stockLevel || null,
+          price,
+          sku: sku.sku ?? sku.name,
+          stock_level: stockLevels[sku.productVariantId] ?? null,
         };
       })
       .filter(Boolean) as Record<string, unknown>[];
-
-    if (!payloads.length) {
-      Alert.alert('Missing prices', 'Enter a competitor price for at least one product.');
-      return;
-    }
 
     setLoading(true);
     try {
       const { synced } = await submitPriceRows(payloads);
       reportAlert(synced);
-      setRows({});
+      setPrices({});
+      setPage(0);
     } finally {
       setLoading(false);
     }
   };
+
+  const statusOpt = current
+    ? STOCK_LEVEL_OPTIONS.find((o) => o.value === stockLevels[current.productVariantId])
+    : undefined;
 
   return (
     <Card style={{ marginBottom: spacing.lg, padding: spacing.lg }}>
@@ -89,48 +145,116 @@ export function PriceReportForm() {
         Price Report
       </AppText>
       <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
-        Capture competitor and shelf prices observed in store.
+        Enter the observed shelf price for each product.
       </AppText>
 
-      {skusLoading ? null : skus.length === 0 ? (
+      {skusLoading ? null : total === 0 ? (
         <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
-          No assigned products for this workspace.
+          No eligible products. Complete the morning stock report first.
         </AppText>
-      ) : (
-        skus.map((sku) => {
-          const row = rows[sku.productVariantId] ?? EMPTY_ROW;
-          return (
-            <View key={sku.productVariantId} style={{ marginBottom: spacing.md }}>
-              <AppText style={{ fontWeight: '500', marginBottom: spacing.xs }}>{sku.name}</AppText>
-              <FormField
-                label={`Competitor price (${currency})`}
-                value={row.competitorPrice}
-                onChangeText={(value) => updateRow(sku.productVariantId, { competitorPrice: value })}
-                keyboardType="decimal-pad"
-              />
-              <FormField
-                label={`Our shelf price (${currency}, optional)`}
-                value={row.ourPrice}
-                onChangeText={(value) => updateRow(sku.productVariantId, { ourPrice: value })}
-                keyboardType="decimal-pad"
-              />
-              <FormField
-                label="Pack size / measurement"
-                value={row.measurement}
-                onChangeText={(value) => updateRow(sku.productVariantId, { measurement: value })}
-              />
-              <ChipSelect
-                label="Shelf stock level"
-                options={STOCK_LEVELS}
-                value={row.stockLevel}
-                onChange={(value) => updateRow(sku.productVariantId, { stockLevel: value })}
-              />
-            </View>
-          );
-        })
-      )}
+      ) : current ? (
+        <>
+          <AppText
+            variant="secondary"
+            style={{ textAlign: 'center', marginBottom: spacing.md, fontWeight: '600' }}
+          >
+            {page + 1} of {total}
+          </AppText>
 
-      <Button onPress={submit} loading={loading} disabled={skus.length === 0}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
+            <Pressable
+              onPress={() => goToPage(page - 1)}
+              disabled={page === 0}
+              hitSlop={hitSlop}
+              style={{ opacity: page === 0 ? 0.3 : 1, padding: spacing.sm }}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.foreground} />
+            </Pressable>
+
+            <Animated.View
+              {...panResponder.panHandlers}
+              style={{
+                flex: 1,
+                transform: [{ translateX }],
+              }}
+            >
+              <Card
+                style={{
+                  padding: spacing.lg,
+                  backgroundColor: stockReport.panel,
+                  borderWidth: 1,
+                  borderColor: stockReport.border,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    marginBottom: spacing.md,
+                  }}
+                >
+                  {statusOpt ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        paddingHorizontal: spacing.sm,
+                        paddingVertical: 4,
+                        borderRadius: radius.full,
+                        backgroundColor: `${statusOpt.color}18`,
+                      }}
+                    >
+                      <Ionicons name={statusOpt.icon} size={14} color={statusOpt.color} />
+                      <AppText style={{ fontSize: 12, fontWeight: '500', color: statusOpt.color }}>
+                        {statusOpt.label}
+                      </AppText>
+                    </View>
+                  ) : null}
+                </View>
+
+                <AppText
+                  variant="h3"
+                  style={{
+                    fontWeight: '700',
+                    marginBottom: spacing.lg,
+                    textAlign: 'center',
+                    flexShrink: 1,
+                  }}
+                >
+                  {current.name}
+                </AppText>
+
+                <FormField
+                  label={`Price (${currency})`}
+                  value={prices[current.productVariantId] ?? ''}
+                  onChangeText={(value) =>
+                    setPrices((prev) => ({ ...prev, [current.productVariantId]: value }))
+                  }
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                />
+              </Card>
+            </Animated.View>
+
+            <Pressable
+              onPress={() => goToPage(page + 1)}
+              disabled={page >= total - 1}
+              hitSlop={hitSlop}
+              style={{ opacity: page >= total - 1 ? 0.3 : 1, padding: spacing.sm }}
+            >
+              <Ionicons name="chevron-forward" size={24} color={colors.foreground} />
+            </Pressable>
+          </View>
+
+          <AppText variant="secondary" style={{ textAlign: 'center', marginBottom: spacing.md }}>
+            {filledCount} of {total} prices entered
+          </AppText>
+        </>
+      ) : null}
+
+      <Button onPress={submit} loading={loading} disabled={total === 0 || !allFilled}>
         Submit price report
       </Button>
     </Card>
