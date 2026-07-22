@@ -25,7 +25,7 @@ export default function AgentDashboard() {
 
   return (
     <ComponentGate code="CRM-0089" redirectTo="/(agent)/profile">
-      <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      <View style={{ flex: 1, minHeight: 0, backgroundColor: colors.canvas }}>
         <ScrollView
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}

@@ -1,34 +1,47 @@
 import { useEffect, useState } from 'react';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, LoadingSpinner, ListItemCard } from '@/components/ui';
+import { Screen, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components/ui';
 
 export default function GiveawayActivitiesScreen() {
   const { user } = useAuth();
-  const [items, setItems] = useState<{ id: string; recipient_name: string | null; created_at: string }[]>([]);
+  const { currentWorkspaceId } = useWorkspace();
+  const [items, setItems] = useState<
+    { id: string; recipient_name: string | null; created_at: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      if (!user) return;
+      if (!user || !currentWorkspaceId) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       const { data } = await supabase
         .from('giveaways')
         .select('id, recipient_name, created_at')
         .eq('agent_id', user.id)
+        .eq('workspace_id', currentWorkspaceId)
         .order('created_at', { ascending: false })
         .limit(30);
       setItems(data ?? []);
       setLoading(false);
     };
     load();
-  }, [user?.id]);
+  }, [user?.id, currentWorkspaceId]);
 
   return (
     <ComponentGate code="CRM-0107">
-      <Screen scroll>
+      <Screen scroll showBack>
         {loading ? (
           <LoadingSpinner label="Loading giveaways" />
+        ) : items.length === 0 ? (
+          <EmptyMessage>No giveaways yet.</EmptyMessage>
         ) : (
           items.map((item) => (
             <ListItemCard

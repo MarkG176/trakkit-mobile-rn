@@ -8,8 +8,8 @@ import {
   AppText,
   Button,
   Card,
+  IconChip,
   ProgressBar,
-  SectionHeader,
 } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { colors, hitSlop, radius, spacing } from '@/theme';
@@ -25,98 +25,255 @@ export type ReportTileItem = {
   onPress: () => void;
 };
 
-function MoreReportRow({ title, icon, onPress }: Omit<ReportTileItem, 'key' | 'primary'>) {
+function CardTitle({
+  icon,
+  title,
+  iconBackgroundColor = colors.muted,
+  iconColor = colors.secondaryForeground,
+}: {
+  icon: IoniconName;
+  title: string;
+  iconBackgroundColor?: string;
+  iconColor?: string;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm + 4,
+        marginBottom: spacing.md,
+      }}
+    >
+      <IconChip name={icon} backgroundColor={iconBackgroundColor} color={iconColor} />
+      <AppText
+        variant="h3"
+        style={{ fontWeight: '600', color: colors.foreground, flex: 1, flexShrink: 1 }}
+      >
+        {title}
+      </AppText>
+    </View>
+  );
+}
+
+function ReportMenuRow({
+  title,
+  icon,
+  onPress,
+  showDivider,
+}: {
+  title: string;
+  icon: IoniconName;
+  onPress: () => void;
+  showDivider?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
       hitSlop={hitSlop}
-      style={({ pressed }) => ({
-        minHeight: 48,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm + 2,
-        marginBottom: spacing.sm,
-        backgroundColor: pressed ? colors.muted : colors.card,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-      })}
+      accessibilityRole="button"
+      accessibilityLabel={title}
     >
-      <Ionicons name={icon} size={20} color={colors.primary} />
-      <AppText
-        style={{
-          flex: 1,
-          fontSize: 16,
-          fontWeight: '500',
-          color: colors.foreground,
-          flexShrink: 1,
-        }}
-      >
-        {title}
-      </AppText>
-      <Ionicons name="chevron-forward" size={18} color={colors.secondaryForeground} />
+      {({ pressed }) => (
+        <View
+          style={{
+            minHeight: 52,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.sm + 4,
+            paddingVertical: spacing.sm + 2,
+            paddingHorizontal: spacing.sm,
+            marginLeft: spacing.md,
+            backgroundColor: pressed ? colors.muted : 'transparent',
+            borderBottomWidth: showDivider ? 1 : 0,
+            borderBottomColor: colors.border,
+          }}
+        >
+          <IconChip
+            name={icon}
+            backgroundColor={colors.primaryLight}
+            color={colors.primary}
+            size={40}
+            iconSize={20}
+          />
+          <AppText
+            style={{
+              flex: 1,
+              flexShrink: 1,
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.foreground,
+            }}
+            numberOfLines={1}
+          >
+            {title}
+          </AppText>
+          <Ionicons name="chevron-forward" size={18} color={colors.secondaryForeground} />
+        </View>
+      )}
     </Pressable>
   );
 }
 
-/**
- * Stock / More report entry points — SectionHeader + stacked CTAs / list rows.
- */
-export function StockReportsLauncher({
-  morning,
-  evening,
-  moreTiles = [],
+function ReportSection({
+  id,
+  title,
+  icon,
+  items,
+  expanded,
+  onToggle,
 }: {
-  morning?: ReportTileItem | null;
-  evening?: ReportTileItem | null;
-  moreTiles?: ReportTileItem[];
+  id: string;
+  title: string;
+  icon: IoniconName;
+  items: ReportTileItem[];
+  expanded: boolean;
+  onToggle: (id: string) => void;
 }) {
-  if (!morning && !evening && moreTiles.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
-    <View style={{ marginBottom: spacing.md }}>
-      {morning || evening ? (
-        <View style={{ marginBottom: spacing.lg }}>
-          <SectionHeader title="Stock Reports" />
-          <View style={{ gap: spacing.sm }}>
-            {morning ? (
-              <Button
-                variant="tile"
-                onPress={morning.onPress}
-                icon={<Ionicons name="sunny-outline" size={20} color={colors.primaryForeground} />}
-              >
-                {`Morning — ${morning.title}`}
-              </Button>
-            ) : null}
-            {evening ? (
-              <Button
-                variant="outline"
-                onPress={evening.onPress}
-                icon={<Ionicons name="moon-outline" size={20} color={colors.foreground} />}
-              >
-                {`Evening — ${evening.title}`}
-              </Button>
-            ) : null}
+    <View
+      style={{
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        overflow: 'hidden',
+        marginBottom: spacing.sm,
+      }}
+    >
+      <Pressable
+        onPress={() => onToggle(id)}
+        hitSlop={hitSlop}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`${title}, ${items.length} reports`}
+      >
+        {({ pressed }) => (
+          <View
+            style={{
+              minHeight: 56,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.sm + 4,
+              paddingHorizontal: spacing.sm + 2,
+              paddingVertical: spacing.sm,
+              backgroundColor: pressed ? colors.muted : colors.card,
+            }}
+          >
+            <IconChip
+              name={icon}
+              backgroundColor={colors.primary}
+              color={colors.primaryForeground}
+              size={40}
+              iconSize={20}
+            />
+            <AppText
+              style={{
+                flex: 1,
+                flexShrink: 1,
+                fontSize: 16,
+                fontWeight: '600',
+                color: colors.foreground,
+              }}
+              numberOfLines={1}
+            >
+              {title}
+            </AppText>
+            <View
+              style={{
+                minWidth: 24,
+                height: 24,
+                borderRadius: radius.full,
+                backgroundColor: colors.muted,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: spacing.xs + 2,
+              }}
+            >
+              <AppText style={{ fontSize: 12, fontWeight: '600', color: colors.secondaryForeground }}>
+                {items.length}
+              </AppText>
+            </View>
+            <Ionicons
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={colors.secondaryForeground}
+            />
           </View>
-        </View>
-      ) : null}
+        )}
+      </Pressable>
 
-      {moreTiles.length > 0 ? (
-        <View>
-          <SectionHeader title="More Reports" />
-          {moreTiles.map((tile) => (
-            <MoreReportRow
-              key={tile.key}
-              title={tile.title}
-              icon={tile.icon}
-              onPress={tile.onPress}
+      {expanded ? (
+        <View style={{ borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.muted }}>
+          {items.map((item, index) => (
+            <ReportMenuRow
+              key={item.key}
+              title={item.title}
+              icon={item.icon}
+              onPress={item.onPress}
+              showDivider={index < items.length - 1}
             />
           ))}
         </View>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * Reports card — grouped expandable sections (nested menu).
+ */
+export function StockReportsLauncher({
+  morning,
+  evening,
+  price,
+  moreTiles = [],
+}: {
+  morning?: ReportTileItem | null;
+  evening?: ReportTileItem | null;
+  price?: ReportTileItem | null;
+  moreTiles?: ReportTileItem[];
+}) {
+  const daily: ReportTileItem[] = [];
+  if (morning) daily.push(morning);
+  if (evening) daily.push(evening);
+
+  const pricing: ReportTileItem[] = [];
+  if (price) pricing.push(price);
+
+  const other = moreTiles;
+
+  const sections = [
+    { id: 'daily', title: 'Daily', icon: 'today-outline' as IoniconName, items: daily },
+    { id: 'pricing', title: 'Pricing', icon: 'pricetag-outline' as IoniconName, items: pricing },
+    { id: 'other', title: 'Other', icon: 'ellipsis-horizontal' as IoniconName, items: other },
+  ].filter((s) => s.items.length > 0);
+
+  const defaultOpen = sections[0]?.id ?? null;
+  const [expandedId, setExpandedId] = useState<string | null>(defaultOpen);
+
+  if (sections.length === 0) return null;
+
+  const onToggle = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <Card style={{ marginBottom: spacing.md }}>
+      <CardTitle icon="clipboard-outline" title="Reports" />
+      {sections.map((section) => (
+        <ReportSection
+          key={section.id}
+          id={section.id}
+          title={section.title}
+          icon={section.icon}
+          items={section.items}
+          expanded={expandedId === section.id}
+          onToggle={onToggle}
+        />
+      ))}
+    </Card>
   );
 }
 
@@ -132,20 +289,8 @@ export function ReportLaunchCard({
   onPress: () => void;
 }) {
   return (
-    <Card style={{ marginBottom: spacing.md, padding: spacing.lg }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: spacing.sm,
-          marginBottom: spacing.sm,
-        }}
-      >
-        <Ionicons name={icon} size={22} color={colors.foreground} />
-        <AppText variant="h3" style={{ fontWeight: '700', flexShrink: 1 }}>
-          {title}
-        </AppText>
-      </View>
+    <Card style={{ marginBottom: spacing.md }}>
+      <CardTitle icon={icon} title={title} />
       <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
         {description}
       </AppText>
@@ -180,8 +325,8 @@ export function ReportsNotesCard() {
   };
 
   return (
-    <Card style={{ marginBottom: spacing.md, padding: spacing.lg }}>
-      <SectionHeader title="Notes" />
+    <Card style={{ marginBottom: spacing.md }}>
+      <CardTitle icon="create-outline" title="Notes" />
       <FormField
         label=""
         value={notes}
@@ -195,6 +340,10 @@ export function ReportsNotesCard() {
           textAlignVertical: 'top',
           paddingVertical: spacing.sm,
           fontSize: 16,
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+          marginBottom: spacing.md,
         }}
       />
       <Button
@@ -202,9 +351,12 @@ export function ReportsNotesCard() {
         onPress={save}
         loading={saving}
         disabled={!notes.trim()}
-        icon={<Ionicons name="document-text-outline" size={18} color={colors.foreground} />}
+        style={{ gap: spacing.sm }}
       >
-        Save Notes
+        <Ionicons name="save-outline" size={18} color={colors.foreground} />
+        <AppText style={{ fontSize: 16, fontWeight: '500', color: colors.foreground }}>
+          Save Notes
+        </AppText>
       </Button>
     </Card>
   );
@@ -318,86 +470,115 @@ export function ReportsImagesCard() {
     }
   };
 
+  const THUMB = 72;
+
   return (
-    <Card style={{ marginBottom: spacing.md, padding: spacing.lg }}>
-      <View
+    <Card style={{ marginBottom: spacing.md, position: 'relative', overflow: 'visible' }}>
+      <Pressable
+        onPress={capture}
+        disabled={cameraUploading}
+        hitSlop={hitSlop}
+        accessibilityLabel="Take photo"
         style={{
-          flexDirection: 'row',
+          position: 'absolute',
+          top: spacing.md,
+          right: spacing.md,
+          zIndex: 2,
+          width: 48,
+          height: 48,
+          borderRadius: radius.full,
+          backgroundColor: colors.primary,
           alignItems: 'center',
-          gap: spacing.sm,
-          marginBottom: spacing.md,
+          justifyContent: 'center',
+          opacity: cameraUploading ? 0.6 : 1,
         }}
       >
-        <AppText
-          variant="h3"
-          style={{ flex: 1, fontWeight: '500', color: colors.foreground, flexShrink: 1 }}
-        >
-          Attach Images
-        </AppText>
-        <Pressable
-          onPress={capture}
-          disabled={cameraUploading}
-          hitSlop={hitSlop}
-          accessibilityLabel="Take photo"
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: radius.full,
-            backgroundColor: colors.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: cameraUploading ? 0.6 : 1,
-          }}
-        >
-          <Ionicons name="camera" size={22} color={colors.primaryForeground} />
-        </Pressable>
+        <Ionicons name="camera" size={22} color={colors.primaryForeground} />
+      </Pressable>
+
+      <View style={{ paddingRight: 56 }}>
+        <CardTitle icon="image-outline" title="Attach Images" />
       </View>
 
-      <AppText variant="secondary" style={{ marginBottom: spacing.sm, fontSize: 14 }}>
+      <AppText
+        style={{
+          fontSize: 14,
+          fontWeight: '500',
+          color: colors.foreground,
+          marginBottom: spacing.sm,
+        }}
+      >
         Select images to upload
       </AppText>
 
       <Pressable
         onPress={browse}
         hitSlop={hitSlop}
-        style={{
-          minHeight: 48,
+        style={({ pressed }) => ({
           borderWidth: 1,
+          borderStyle: 'dashed',
           borderColor: colors.border,
           borderRadius: radius.md,
+          backgroundColor: pressed ? colors.muted : colors.card,
+          paddingVertical: spacing.md,
           paddingHorizontal: spacing.md,
-          justifyContent: 'center',
-          backgroundColor: colors.muted,
-        }}
+          marginBottom: spacing.md,
+        })}
       >
-        <AppText variant="secondary" style={{ fontSize: 16 }}>
-          {stagedUris.length === 0
-            ? 'Browse... No files selected'
-            : `${stagedUris.length} file${stagedUris.length === 1 ? '' : 's'} selected`}
-        </AppText>
-      </Pressable>
-
-      {stagedUris.length > 0 ? (
         <View
           style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: spacing.sm,
-            marginTop: spacing.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: radius.sm,
+            backgroundColor: colors.card,
+            paddingVertical: spacing.sm + 2,
+            paddingHorizontal: spacing.md,
+            minHeight: 48,
+            justifyContent: 'center',
           }}
         >
-          {stagedUris.map((uri) => (
-            <Image
-              key={uri}
-              source={{ uri }}
-              style={{ width: 72, height: 72, borderRadius: radius.md }}
-            />
-          ))}
+          <AppText variant="secondary" style={{ fontSize: 14 }}>
+            {stagedUris.length === 0
+              ? 'Browse... No files selected'
+              : `${stagedUris.length} file${stagedUris.length === 1 ? '' : 's'} selected`}
+          </AppText>
         </View>
-      ) : null}
+      </Pressable>
+
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: spacing.sm,
+          marginBottom: spacing.md,
+        }}
+      >
+        {stagedUris.map((uri) => (
+          <Image
+            key={uri}
+            source={{ uri }}
+            style={{ width: THUMB, height: THUMB, borderRadius: radius.md }}
+          />
+        ))}
+        <Pressable
+          onPress={browse}
+          hitSlop={hitSlop}
+          accessibilityLabel="Add images"
+          style={({ pressed }) => ({
+            width: THUMB,
+            height: THUMB,
+            borderRadius: radius.md,
+            backgroundColor: pressed ? colors.border : colors.muted,
+            alignItems: 'center',
+            justifyContent: 'center',
+          })}
+        >
+          <Ionicons name="add" size={28} color={colors.secondaryForeground} />
+        </Pressable>
+      </View>
 
       {uploading ? (
-        <View style={{ marginTop: spacing.md }}>
+        <View style={{ marginBottom: spacing.md }}>
           <ProgressBar value={uploadProgress} />
           <AppText variant="secondary" style={{ textAlign: 'center', fontSize: 14 }}>
             {Math.round(uploadProgress * 100)}% uploaded
@@ -405,18 +586,18 @@ export function ReportsImagesCard() {
         </View>
       ) : null}
 
-      {stagedUris.length > 0 ? (
-        <Button
-          onPress={uploadStaged}
-          loading={uploading}
-          style={{ marginTop: spacing.md }}
-          icon={
-            <Ionicons name="cloud-upload-outline" size={18} color={colors.primaryForeground} />
-          }
-        >
+      <Button
+        variant="outline"
+        onPress={uploadStaged}
+        loading={uploading}
+        disabled={stagedUris.length === 0}
+        style={{ borderColor: colors.primary, gap: spacing.sm }}
+      >
+        <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />
+        <AppText style={{ fontSize: 16, fontWeight: '500', color: colors.primary }}>
           Upload Images
-        </Button>
-      ) : null}
+        </AppText>
+      </Button>
     </Card>
   );
 }

@@ -1,0 +1,51 @@
+component,component_path,pages,page_count
+AppShell,components/AppShell.tsx,app/_layout.tsx,1
+RecordAttendanceForm,components/attendance/RecordAttendanceForm.tsx,app/(agent)/(tabs)/index.tsx,1
+BackgroundLocationTracker,components/BackgroundLocationTracker.tsx,app/_layout.tsx,1
+CameraCapture,components/CameraCapture.tsx,(not imported by any page),0
+ComponentGate,components/ComponentGate.tsx,app/(agent)/(tabs)/index.tsx; app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/reports.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/_layout.tsx; app/(agent)/activity.tsx; app/(agent)/give-products.tsx; app/(agent)/giveaway-activities.tsx; app/(agent)/help-support.tsx; app/(agent)/interaction-history.tsx; app/(agent)/log-interaction.tsx; app/(agent)/manage-agents.tsx; app/(agent)/profile.tsx; app/(agent)/record-sale.tsx; app/(agent)/sales-activities.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/survey-activities.tsx; app/(agent)/surveys.tsx; app/(supervisor)/(tabs)/inbox.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/map.tsx; app/(supervisor)/(tabs)/stats.tsx; app/(supervisor)/(tabs)/users.tsx; app/(supervisor)/_layout.tsx; app/(supervisor)/feedback.tsx; app/(supervisor)/gallery.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx,30
+DashboardMessagesCard,components/dashboard/DashboardMessagesCard.tsx,app/(agent)/(tabs)/index.tsx,1
+ExpectedActivitiesCard,components/dashboard/ExpectedActivitiesCard.tsx,app/(agent)/(tabs)/index.tsx,1
+QuickActions,components/dashboard/QuickActions.tsx,app/(agent)/(tabs)/index.tsx,1
+TopBar,components/dashboard/TopBar.tsx,app/(agent)/_layout.tsx; app/(supervisor)/_layout.tsx,2
+WorkHoursCard,components/dashboard/WorkHoursCard.tsx,app/(agent)/(tabs)/index.tsx; app/(agent)/profile.tsx,2
+FormField,components/forms/FormField.tsx,app/(agent)/give-products.tsx; app/(agent)/log-interaction.tsx; app/(agent)/record-sale.tsx; app/(agent)/support-ticket.tsx,4
+GeoCapture,components/forms/GeoCapture.tsx,app/(agent)/give-products.tsx; app/(agent)/log-interaction.tsx; app/(agent)/record-sale.tsx,3
+ProductPickerSheet,components/sales/ProductPickerSheet.tsx,app/(agent)/record-sale.tsx,1
+SaleCartSection,components/sales/SaleCartSection.tsx,app/(agent)/record-sale.tsx,1
+types,components/sales/types.ts,app/(agent)/record-sale.tsx,1
+ContentBetweenChrome,components/layout/ContentBetweenChrome.tsx,app/(agent)/_layout.tsx; app/(supervisor)/_layout.tsx,2
+TabIcon,components/navigation/TabIcon.tsx,app/(agent)/(tabs)/_layout.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/interaction-history.tsx; app/(agent)/profile.tsx; app/(supervisor)/(tabs)/_layout.tsx; app/(supervisor)/(tabs)/index.tsx,6
+PermissionGuidance,components/PermissionGuidance.tsx,app/(agent)/settings.tsx,1
+ClosingReportForm,components/reports/ClosingReportForm.tsx,app/(agent)/(tabs)/reports.tsx,1
+EveningReportForm,components/reports/EveningReportForm.tsx,app/(agent)/(tabs)/reports.tsx,1
+OpeningStockCountDialog,components/reports/OpeningStockCountDialog.tsx,app/(agent)/(tabs)/reports.tsx,1
+PriceReportForm,components/reports/PriceReportForm.tsx,app/(agent)/(tabs)/reports.tsx,1
+ReportDialogShell,components/reports/ReportDialogShell.tsx,(not imported by any page),0
+ReportsHub,components/reports/ReportsHub.tsx,app/(agent)/(tabs)/reports.tsx,1
+SeedingEveningReportForm,components/reports/SeedingEveningReportForm.tsx,app/(agent)/(tabs)/reports.tsx,1
+shared,components/reports/shared.tsx,app/(agent)/(tabs)/reports.tsx,1
+StockLevelSelect,components/reports/StockLevelSelect.tsx,(not imported by any page),0
+StockReportDialog,components/reports/StockReportDialog.tsx,app/(agent)/(tabs)/reports.tsx,1
+SurveyClosingReportForm,components/reports/SurveyClosingReportForm.tsx,app/(agent)/(tabs)/reports.tsx,1
+submitSurvey,components/surveys/submitSurvey.ts,(not imported by any page),0
+SurveyForm,components/surveys/SurveyForm.tsx,app/(agent)/surveys.tsx,1
+SurveyQuestionCard,components/surveys/SurveyQuestionCard.tsx,(not imported by any page),0
+SurveyResponseSheet,components/surveys/SurveyResponseSheet.tsx,app/(agent)/survey-activities.tsx,1
+types,components/surveys/types.ts,app/(agent)/surveys.tsx,1
+SyncStatusBar,components/SyncStatusBar.tsx,app/_layout.tsx,1
+Themed,components/Themed.tsx,(not imported by any page),0
+AppText,components/ui/AppText.tsx,app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/activity.tsx; app/(agent)/give-products.tsx; app/(agent)/help-support.tsx; app/(agent)/interaction-history.tsx; app/(agent)/log-interaction.tsx; app/(agent)/manage-agents.tsx; app/(agent)/profile.tsx; app/(agent)/record-sale.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/surveys.tsx; app/(auth)/login.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/map.tsx; app/(supervisor)/(tabs)/stats.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx; app/+not-found.tsx,21
+Badge,components/ui/Badge.tsx,app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/activity.tsx; app/(agent)/interaction-history.tsx; app/(agent)/support-ticket.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/stats.tsx,7
+Button,components/ui/Button.tsx,app/(agent)/give-products.tsx; app/(agent)/log-interaction.tsx; app/(agent)/record-sale.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/surveys.tsx; app/(auth)/login.tsx,7
+Card,components/ui/Card.tsx,app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/activity.tsx; app/(agent)/interaction-history.tsx; app/(agent)/manage-agents.tsx; app/(agent)/profile.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/surveys.tsx; app/(auth)/login.tsx; app/(supervisor)/(tabs)/map.tsx; app/(supervisor)/(tabs)/stats.tsx,13
+IconButton,components/ui/IconButton.tsx,(not imported by any page),0
+IconChip,components/ui/IconChip.tsx,app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/activity.tsx; app/(agent)/interaction-history.tsx; app/(agent)/manage-agents.tsx; app/(agent)/profile.tsx; app/(agent)/settings.tsx; app/(agent)/surveys.tsx; app/(auth)/login.tsx; app/(supervisor)/(tabs)/stats.tsx,10
+Input,components/ui/Input.tsx,(not imported by any page),0
+ListPatterns,components/ui/ListPatterns.tsx,app/(agent)/giveaway-activities.tsx; app/(agent)/log-interaction.tsx; app/(agent)/sales-activities.tsx; app/(agent)/survey-activities.tsx; app/(supervisor)/(tabs)/inbox.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/users.tsx; app/(supervisor)/feedback.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx,10
+PageLayout,components/ui/PageLayout.tsx,app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/reports.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/_layout.tsx; app/(agent)/activity.tsx; app/(agent)/giveaway-activities.tsx; app/(agent)/interaction-history.tsx; app/(agent)/manage-agents.tsx; app/(agent)/record-sale.tsx; app/(agent)/sales-activities.tsx; app/(agent)/support-ticket.tsx; app/(agent)/survey-activities.tsx; app/(agent)/surveys.tsx; app/(auth)/callback.tsx; app/(supervisor)/(tabs)/inbox.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/map.tsx; app/(supervisor)/(tabs)/stats.tsx; app/(supervisor)/(tabs)/users.tsx; app/(supervisor)/_layout.tsx; app/(supervisor)/feedback.tsx; app/(supervisor)/gallery.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx; app/_layout.tsx; app/index.tsx,26
+ProgressBar,components/ui/ProgressBar.tsx,(not imported by any page),0
+Screen,components/ui/Screen.tsx,app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/reports.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/activity.tsx; app/(agent)/give-products.tsx; app/(agent)/giveaway-activities.tsx; app/(agent)/help-support.tsx; app/(agent)/interaction-history.tsx; app/(agent)/log-interaction.tsx; app/(agent)/manage-agents.tsx; app/(agent)/record-sale.tsx; app/(agent)/sales-activities.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/survey-activities.tsx; app/(agent)/surveys.tsx; app/(supervisor)/(tabs)/inbox.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/stats.tsx; app/(supervisor)/(tabs)/users.tsx; app/(supervisor)/feedback.tsx; app/(supervisor)/gallery.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx; app/+not-found.tsx,26
+useClientOnlyValue,components/useClientOnlyValue.ts,(not imported by any page),0
+useColorScheme,components/useColorScheme.ts,(not imported by any page),0
+WorkspaceSwitcher,components/WorkspaceSwitcher.tsx,(not imported by any page),0

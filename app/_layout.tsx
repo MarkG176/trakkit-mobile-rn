@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
@@ -57,19 +57,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 function RootFrame({ children }: { children: React.ReactNode }) {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingTop: insets.top,
-        backgroundColor: colors.background,
-      }}
+    <SafeAreaView
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: colors.background }}
     >
       <SyncStatusBar />
-      <View style={{ flex: 1, backgroundColor: colors.background }}>{children}</View>
-    </View>
+      <View style={{ flex: 1, minHeight: 0, backgroundColor: colors.background }}>{children}</View>
+    </SafeAreaView>
   );
 }
 

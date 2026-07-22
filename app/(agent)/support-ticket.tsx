@@ -102,20 +102,29 @@ export default function SupportTicketScreen() {
   const [loadingMessages, setLoadingMessages] = useState(true);
 
   const fetchMyTickets = useCallback(async () => {
-    if (!user) return;
+    if (!user || !currentWorkspaceId) {
+      setMyTickets([]);
+      setLoadingTickets(false);
+      return;
+    }
     setLoadingTickets(true);
     const { data } = await supabase
       .from('support_tickets')
       .select('id, ticket_type, message, status, created_at')
       .eq('agent_id', user.id)
+      .eq('workspace_id', currentWorkspaceId)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
     setMyTickets(data ?? []);
     setLoadingTickets(false);
-  }, [user]);
+  }, [user, currentWorkspaceId]);
 
   const fetchSupervisorMessages = useCallback(async () => {
-    if (!user) return;
+    if (!user || !currentWorkspaceId) {
+      setSupervisorMessages([]);
+      setLoadingMessages(false);
+      return;
+    }
     setLoadingMessages(true);
     const { data } = await supabase
       .from('supervisor_messages')
@@ -123,6 +132,7 @@ export default function SupportTicketScreen() {
         'id, sender_name, message, created_at, image_url, location_lat, location_lng, location_label, is_read',
       )
       .eq('recipient_id', user.id)
+      .eq('workspace_id', currentWorkspaceId)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 
@@ -142,9 +152,13 @@ export default function SupportTicketScreen() {
 
     const unread = (data ?? []).filter((row) => !row.is_read).map((row) => row.id);
     if (unread.length > 0) {
-      await supabase.from('supervisor_messages').update({ is_read: true }).in('id', unread);
+      await supabase
+        .from('supervisor_messages')
+        .update({ is_read: true })
+        .eq('workspace_id', currentWorkspaceId)
+        .in('id', unread);
     }
-  }, [user]);
+  }, [user, currentWorkspaceId]);
 
   useEffect(() => {
     fetchMyTickets();

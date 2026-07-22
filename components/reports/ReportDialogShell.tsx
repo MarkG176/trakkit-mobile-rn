@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText } from '@/components/ui';
+import { AppText, IconChip } from '@/components/ui';
 import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
@@ -121,7 +121,6 @@ export function ReportDialogShell({
           }}
         />
 
-        {/* Dismiss only taps outside the panel */}
         <Pressable
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           onPress={close}
@@ -145,8 +144,8 @@ export function ReportDialogShell({
               borderRadius: radius.lg,
               borderWidth: 1,
               borderColor: colors.border,
-              padding: spacing.lg,
               maxHeight: maxPanelH,
+              overflow: 'hidden',
             }}
           >
             <View
@@ -154,41 +153,66 @@ export function ReportDialogShell({
                 flexDirection: 'row',
                 alignItems: 'flex-start',
                 gap: spacing.sm,
-                marginBottom: spacing.sm,
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.lg,
+                paddingBottom: spacing.md,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
               }}
             >
-              <Ionicons name={icon} size={20} color={colors.foreground} />
-              <AppText
-                variant="h3"
-                style={{
-                  fontWeight: '700',
-                  color: colors.foreground,
-                  flex: 1,
-                  flexShrink: 1,
-                }}
-              >
-                {title}
-              </AppText>
+              <IconChip
+                name={icon}
+                backgroundColor={colors.primary}
+                color={colors.primaryForeground}
+                size={40}
+                iconSize={20}
+              />
+              <View style={{ flex: 1, flexShrink: 1 }}>
+                <AppText
+                  variant="h3"
+                  style={{
+                    fontWeight: '700',
+                    color: colors.foreground,
+                    flexShrink: 1,
+                  }}
+                >
+                  {title}
+                </AppText>
+                {subtitle ? (
+                  <AppText
+                    style={{
+                      fontSize: 14,
+                      color: colors.secondaryForeground,
+                      marginTop: 2,
+                    }}
+                  >
+                    {subtitle}
+                  </AppText>
+                ) : null}
+              </View>
               <Pressable onPress={close} hitSlop={hitSlop} accessibilityLabel="Close">
                 <Ionicons name="close" size={22} color={colors.secondaryForeground} />
               </Pressable>
             </View>
 
-            {subtitle ? (
-              <AppText
+            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm }}>
+              {children}
+            </View>
+
+            {footer ? (
+              <View
                 style={{
-                  textAlign: 'center',
-                  fontSize: 14,
-                  color: colors.secondaryForeground,
-                  marginBottom: spacing.md,
+                  marginTop: spacing.md,
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.md,
+                  backgroundColor: colors.muted,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.border,
                 }}
               >
-                {subtitle}
-              </AppText>
+                {footer}
+              </View>
             ) : null}
-
-            {children}
-            {footer}
           </View>
         </Animated.View>
       </View>

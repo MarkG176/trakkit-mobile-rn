@@ -23,6 +23,10 @@ export function tabBarIcon(name: IoniconName) {
 export function getTabScreenOptions(bottomInset = 0) {
   return {
     headerShown: false,
+    // TopBar + RootFrame already own the top inset; tab bar owns the bottom.
+    // Zero these so scene content fills the space between TopBar and tab bar.
+    safeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 },
+    sceneStyle: { flex: 1, backgroundColor: colors.canvas },
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.secondaryForeground,
     tabBarStyle: getTabBarStyle(bottomInset),

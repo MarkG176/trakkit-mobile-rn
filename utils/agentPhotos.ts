@@ -23,7 +23,10 @@ export async function uploadCheckInPhoto(uri: string, userId: string): Promise<s
   }
 }
 
-export async function getLastCheckInPhotoUrl(userId: string): Promise<string | null> {
+export async function getLastCheckInPhotoUrl(
+  userId: string,
+  workspaceId?: string | null,
+): Promise<string | null> {
   try {
     const { data, error } = await supabase.storage
       .from('agent-photos')
@@ -43,15 +46,20 @@ export async function getLastCheckInPhotoUrl(userId: string): Promise<string | n
     // Fall through to status log lookup.
   }
 
-  const { data: log } = await supabase
+  let query = supabase
     .from('agent_status_log')
     .select('selfie_url')
     .eq('agent_id', userId)
     .eq('status', 'checked_in')
     .not('selfie_url', 'is', null)
     .order('timestamp', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId);
+  }
+
+  const { data: log } = await query.maybeSingle();
 
   return log?.selfie_url ?? null;
 }

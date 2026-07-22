@@ -263,12 +263,14 @@ export function useAgentDashboardData() {
           .from('agent_tasks')
           .select('individual_sales_target')
           .eq('agent_id', user.id)
+          .eq('workspace_id', currentWorkspaceId)
           .eq('status', 'pending')
           .maybeSingle(),
         supabase
           .from('supervisor_messages')
           .select('id', { count: 'exact', head: true })
           .eq('recipient_id', user.id)
+          .eq('workspace_id', currentWorkspaceId)
           .eq('is_deleted', false)
           .eq('is_read', false),
       ]);

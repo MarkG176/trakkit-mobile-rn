@@ -9,8 +9,10 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppText, Button, LoadingSpinner } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { colors, radius, spacing } from '@/theme';
 import { ReportDialogShell } from './ReportDialogShell';
 import { StockProductRow } from './StockLevelSelect';
@@ -36,10 +38,12 @@ export type StockReportDialogProps = {
 
 function EveningSoldRow({
   name,
+  sku,
   value,
   onChangeText,
 }: {
   name: string;
+  sku?: string | null;
   value: string;
   onChangeText: (text: string) => void;
 }) {
@@ -49,24 +53,45 @@ function EveningSoldRow({
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: radius.md,
-        backgroundColor: colors.card,
+        backgroundColor: colors.muted,
         padding: spacing.md,
         marginBottom: spacing.sm,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
       }}
     >
-      <AppText
-        style={{
-          fontWeight: '500',
-          fontSize: 16,
-          color: colors.foreground,
-          marginBottom: spacing.sm,
-          flexShrink: 1,
-        }}
-      >
-        {name}
-      </AppText>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <AppText style={{ fontSize: 16, color: colors.secondaryForeground }}>Number sold:</AppText>
+      <View style={{ flex: 1, flexShrink: 1, minWidth: 0 }}>
+        <AppText
+          style={{
+            fontWeight: '600',
+            fontSize: 16,
+            color: colors.foreground,
+            flexShrink: 1,
+          }}
+          numberOfLines={2}
+        >
+          {name}
+        </AppText>
+        {sku ? (
+          <AppText
+            style={{ fontSize: 12, color: colors.secondaryForeground, marginTop: 2 }}
+            numberOfLines={1}
+          >
+            {`SKU: ${sku}`}
+          </AppText>
+        ) : null}
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <AppText
+          style={{
+            fontSize: 12,
+            color: colors.secondaryForeground,
+            marginBottom: spacing.xs,
+          }}
+        >
+          Number sold:
+        </AppText>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -74,15 +99,16 @@ function EveningSoldRow({
           placeholder="0"
           placeholderTextColor={colors.secondaryForeground}
           style={{
-            width: 96,
+            width: 72,
             minHeight: 48,
-            textAlign: 'center',
+            textAlign: 'right',
             fontSize: 16,
             color: colors.foreground,
-            backgroundColor: colors.muted,
+            backgroundColor: colors.card,
             borderWidth: 1,
             borderColor: colors.border,
             borderRadius: radius.md,
+            paddingHorizontal: spacing.sm,
           }}
         />
       </View>
@@ -100,6 +126,7 @@ export function StockReportDialog({
   onComplete,
 }: StockReportDialogProps) {
   const { user } = useAuth();
+  const { currentWorkspaceId } = useWorkspace();
   const { height: windowH } = useWindowDimensions();
   const { skus, loading: skusLoading } = useReportSkus();
   const [levelBySku, setLevelBySku] = useState<Record<string, StockLevelValue | ''>>({});
@@ -121,18 +148,18 @@ export function StockReportDialog({
   const resolvedSubtitle =
     subtitle ??
     (reportType === 'morning'
-      ? 'Report the current stock level for each product in your inventory.'
+      ? 'Report stock level per product'
       : reportType === 'evening'
         ? 'Review and correct the number sold for each product today.'
         : 'Submit the stock level for each product in your inventory.');
 
   useEffect(() => {
-    if (!open || !isEvening || !user) return;
+    if (!open || !isEvening || !user || !currentWorkspaceId) return;
 
     let cancelled = false;
     setPrefillLoading(true);
 
-    fetchTodaySalesByProduct(user.id, workDate)
+    fetchTodaySalesByProduct(user.id, workDate, currentWorkspaceId)
       .then((totals) => {
         if (cancelled) return;
         const next: Record<string, string> = {};
@@ -151,7 +178,7 @@ export function StockReportDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, isEvening, user, workDate, skus]);
+  }, [open, isEvening, user, currentWorkspaceId, workDate, skus]);
 
   useEffect(() => {
     if (!open) {
@@ -282,13 +309,14 @@ export function StockReportDialog({
     }
   };
 
-  const maxListH = Math.min(windowH * 0.9, 640) - 220;
+  const maxListH = Math.min(windowH * 0.9, 640) - 240;
 
   const renderMorningItem = useCallback(
     ({ item }: { item: ReportSku }) => (
       <StockProductRow
         productVariantId={item.productVariantId}
         name={item.name}
+        sku={item.sku}
         value={levelBySku[item.productVariantId] ?? ''}
         expanded={expandedId === item.productVariantId}
         onExpandedChange={handleExpandedChange}
@@ -302,6 +330,7 @@ export function StockReportDialog({
     ({ item }: { item: ReportSku }) => (
       <EveningSoldRow
         name={item.name}
+        sku={item.sku}
         value={soldBySku[item.productVariantId] ?? ''}
         onChangeText={(text) =>
           setSoldBySku((prev) => ({ ...prev, [item.productVariantId]: text }))
@@ -328,9 +357,12 @@ export function StockReportDialog({
           onPress={submit}
           loading={loading}
           disabled={skus.length === 0 || !canSubmit}
-          style={{ marginTop: spacing.md }}
+          style={{ gap: spacing.sm }}
         >
-          Submit Report
+          <Ionicons name="clipboard-outline" size={18} color={colors.primaryForeground} />
+          <AppText style={{ fontSize: 16, fontWeight: '500', color: colors.primaryForeground }}>
+            Submit Report
+          </AppText>
         </Button>
       }
     >

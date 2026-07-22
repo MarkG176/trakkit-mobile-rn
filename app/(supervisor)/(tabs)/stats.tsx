@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
-import { Screen, LoadingSpinner, ListItemCard, AppText } from '@/components/ui';
-import { colors } from '@/theme';
+import { Screen, LoadingSpinner, AppText, Card, IconChip, Badge } from '@/components/ui';
+import { colors, spacing } from '@/theme';
 
 export default function StatsScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -78,14 +79,58 @@ export default function StatsScreen() {
           <LoadingSpinner label="Loading stats" />
         ) : (
           <>
-            <ListItemCard
-              title="Sales"
-              trailing={<AppText variant="h2" style={{ color: colors.primary }}>{salesCount}</AppText>}
-            />
-            <ListItemCard
-              title="Giveaways"
-              trailing={<AppText variant="h2" style={{ color: colors.success }}>{giveawayCount}</AppText>}
-            />
+            <AppText style={{ fontWeight: '700', fontSize: 20, marginBottom: 4 }}>
+              Supervisor Stats
+            </AppText>
+            <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
+              Performance monitoring for today
+            </AppText>
+
+            <Card style={{ marginBottom: spacing.md }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <IconChip
+                  name="cash-outline"
+                  backgroundColor={colors.primaryLight}
+                  color={colors.primary}
+                />
+                <Badge variant="primary">Today</Badge>
+              </View>
+              <AppText variant="secondary" style={{ marginTop: spacing.md }}>
+                Total Sales
+              </AppText>
+              <AppText variant="h2" style={{ color: colors.primary, marginTop: 4 }}>
+                {salesCount}
+              </AppText>
+            </Card>
+
+            <Card>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <IconChip
+                  name="gift-outline"
+                  backgroundColor={colors.muted}
+                  color={colors.foreground}
+                />
+                <Badge variant="success">Today</Badge>
+              </View>
+              <AppText variant="secondary" style={{ marginTop: spacing.md }}>
+                Giveaways
+              </AppText>
+              <AppText variant="h2" style={{ marginTop: 4 }}>
+                {giveawayCount}
+              </AppText>
+            </Card>
           </>
         )}
       </Screen>

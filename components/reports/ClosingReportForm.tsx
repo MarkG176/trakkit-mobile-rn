@@ -3,6 +3,7 @@ import { Alert, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Button, Card } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { colors, radius, spacing } from '@/theme';
 import {
   fetchTodayMorningOpeningStock,
@@ -70,6 +71,7 @@ function CountInput({
 
 export function ClosingReportForm() {
   const { user } = useAuth();
+  const { currentWorkspaceId } = useWorkspace();
   const { skus, loading: skusLoading } = useReportSkus();
   const [openingBySku, setOpeningBySku] = useState<Record<string, string>>({});
   const [soldBySku, setSoldBySku] = useState<Record<string, string>>({});
@@ -78,16 +80,16 @@ export function ClosingReportForm() {
   const workDate = todayWorkDate();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !currentWorkspaceId) return;
 
-    fetchTodayMorningOpeningStock(user.id, workDate).then((prefill) => {
+    fetchTodayMorningOpeningStock(user.id, workDate, currentWorkspaceId).then((prefill) => {
       const next: Record<string, string> = {};
       for (const [id, count] of Object.entries(prefill)) {
         next[id] = String(count);
       }
       setOpeningBySku(next);
     });
-  }, [user, workDate]);
+  }, [user, currentWorkspaceId, workDate]);
 
   const hasAnyValue = skus.some((sku) => {
     const id = sku.productVariantId;

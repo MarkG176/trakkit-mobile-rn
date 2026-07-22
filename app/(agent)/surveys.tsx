@@ -1,86 +1,62 @@
 import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
-import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { FormField } from '@/components/forms/FormField';
 import {
   Screen,
   Button,
-  SelectCard,
   AppText,
   CenteredScreen,
   LoadingSpinner,
   EmptyMessage,
-  ProgressBar,
-  SectionHeader,
+  Card,
+  IconChip,
 } from '@/components/ui';
 import { colors, spacing } from '@/theme';
-
-interface SurveyQuestion {
-  id: string;
-  question_text: string;
-  question_type: string;
-  options?: string[];
-}
+import { SurveyForm } from '@/components/surveys/SurveyForm';
+import {
+  normalizeSurveyQuestions,
+  type SurveyTemplateSummary,
+} from '@/components/surveys/types';
 
 export default function SurveysScreen() {
-  const { user } = useAuth();
-  const { currentWorkspaceId, currentProjectId } = useWorkspace();
-  const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [templateId, setTemplateId] = useState<string | null>(null);
+  const { currentWorkspaceId } = useWorkspace();
+  const [templates, setTemplates] = useState<SurveyTemplateSummary[]>([]);
+  const [active, setActive] = useState<SurveyTemplateSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      if (!currentWorkspaceId) return;
-      let query = supabase
-        .from('survey_templates')
-        .select('id, questions')
-        .eq('is_published', true)
-        .eq('is_deleted', false)
-        .limit(1);
-
-      if (currentProjectId) {
-        query = query.eq('project_id', currentProjectId);
+      if (!currentWorkspaceId) {
+        setTemplates([]);
+        setLoading(false);
+        return;
       }
 
-      const { data: template } = await query.maybeSingle();
-      const qs = (template?.questions as SurveyQuestion[] | null) ?? [];
-      setTemplateId(template?.id ?? null);
-      setQuestions(qs);
+      setLoading(true);
+      const { data } = await supabase
+        .from('survey_templates')
+        .select('id, title, questions')
+        .eq('is_published', true)
+        .eq('is_deleted', false)
+        .eq('workspace_id', currentWorkspaceId)
+        .order('title', { ascending: true })
+        .limit(50);
+
+      const list: SurveyTemplateSummary[] = (data ?? [])
+        .map((row) => ({
+          id: row.id,
+          title: row.title?.trim() || 'Survey',
+          questions: normalizeSurveyQuestions(row.questions),
+        }))
+        .filter((t) => t.questions.length > 0);
+
+      setTemplates(list);
       setLoading(false);
     };
     load();
-  }, [currentWorkspaceId, currentProjectId]);
-
-  const current = questions[step];
-
-  const submitSurvey = async () => {
-    if (!user || !currentWorkspaceId || !templateId) return;
-    setSubmitting(true);
-    try {
-      const responsePayload = {
-        agent_id: user.id,
-        workspace_id: currentWorkspaceId,
-        survey_template_id: templateId,
-        responses: answers,
-        is_completed: true,
-        completed_at: new Date().toISOString(),
-      };
-      const { synced } = await writeWithOfflineQueue('survey_responses', responsePayload);
-      Alert.alert(synced ? 'Survey submitted' : 'Saved offline');
-      setStep(0);
-      setAnswers({});
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  }, [currentWorkspaceId]);
 
   if (loading) {
     return (
@@ -90,7 +66,7 @@ export default function SurveysScreen() {
     );
   }
 
-  if (!questions.length) {
+  if (!templates.length) {
     return (
       <ComponentGate code="CRM-0097" redirectTo="/(agent)">
         <CenteredScreen>
@@ -100,51 +76,54 @@ export default function SurveysScreen() {
     );
   }
 
+  if (active && currentWorkspaceId) {
+    return (
+      <ComponentGate code="CRM-0097" redirectTo="/(agent)">
+        <Screen scroll showBack onBack={() => setActive(null)}>
+          <SurveyForm
+            template={active}
+            workspaceId={currentWorkspaceId}
+            onCancel={() => setActive(null)}
+            onSubmitted={() => setActive(null)}
+          />
+        </Screen>
+      </ComponentGate>
+    );
+  }
+
   return (
     <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-      <Screen scroll>
-        <ProgressBar value={(step + 1) / questions.length} />
-        <SectionHeader title={current.question_text} />
-
-        {current.question_type === 'multiple_choice' && current.options ? (
-          current.options.map((opt) => (
-            <SelectCard
-              key={opt}
-              label={opt}
-              selected={answers[current.id] === opt}
-              onPress={() => setAnswers((a) => ({ ...a, [current.id]: opt }))}
-            />
-          ))
-        ) : (
-          <FormField
-            label="Your answer"
-            value={answers[current.id] ?? ''}
-            onChangeText={(v) => setAnswers((a) => ({ ...a, [current.id]: v }))}
-            multiline
-          />
-        )}
-
-        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
-          {step > 0 ? (
-            <Button variant="outline" style={{ flex: 1 }} onPress={() => setStep(step - 1)}>
-              Back
-            </Button>
-          ) : null}
-          {step < questions.length - 1 ? (
-            <Button style={{ flex: 1 }} onPress={() => setStep(step + 1)} disabled={!answers[current.id]}>
-              Next
-            </Button>
-          ) : (
-            <Button
-              style={{ flex: 1, backgroundColor: colors.success }}
-              onPress={submitSurvey}
-              loading={submitting}
-              disabled={!answers[current.id]}
+      <Screen scroll showBack>
+        <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
+          Complete assigned market surveys
+        </AppText>
+        {templates.map((tpl) => (
+          <Card key={tpl.id} style={{ marginBottom: spacing.md }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: spacing.md,
+                marginBottom: spacing.md,
+              }}
             >
-              Submit
-            </Button>
-          )}
-        </View>
+              <IconChip
+                name="clipboard-outline"
+                backgroundColor={colors.primaryLight}
+                color={colors.primary}
+              />
+              <View style={{ flex: 1, flexShrink: 1 }}>
+                <AppText style={{ fontWeight: '600', fontSize: 16, flexShrink: 1 }}>
+                  {tpl.title}
+                </AppText>
+                <AppText variant="secondary" style={{ marginTop: 4, fontSize: 14 }}>
+                  {tpl.questions.length} question{tpl.questions.length === 1 ? '' : 's'}
+                </AppText>
+              </View>
+            </View>
+            <Button onPress={() => setActive(tpl)}>Start Survey</Button>
+          </Card>
+        ))}
       </Screen>
     </ComponentGate>
   );

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@/components/forms/FormField';
 import { AppText, LoadingSpinner } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
@@ -154,6 +155,7 @@ export function StockProductCard({
 
 export function useReportSkus() {
   const { user } = useAuth();
+  const { currentWorkspaceId } = useWorkspace();
   const [skus, setSkus] = useState<ReportSku[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -161,7 +163,7 @@ export function useReportSkus() {
     let cancelled = false;
 
     const load = async () => {
-      if (!user) {
+      if (!user || !currentWorkspaceId) {
         if (!cancelled) {
           setSkus([]);
           setLoading(false);
@@ -171,19 +173,38 @@ export function useReportSkus() {
 
       const { data } = await supabase
         .from('agent_task_inventory')
-        .select('product_variant_id, name')
+        .select(
+          `
+          product_variant_id,
+          name,
+          product_variants!inner (
+            sku,
+            workspace_id
+          ),
+          agent_tasks!inner (
+            workspace_id,
+            is_deleted
+          )
+        `,
+        )
         .eq('agent_id', user.id)
-        .not('is_deleted', 'is', true);
+        .eq('is_deleted', false)
+        .eq('product_variants.workspace_id', currentWorkspaceId)
+        .eq('agent_tasks.workspace_id', currentWorkspaceId)
+        .eq('agent_tasks.is_deleted', false);
 
       if (cancelled) return;
 
       const unique = new Map<string, ReportSku>();
       for (const row of data ?? []) {
         if (!row.product_variant_id || unique.has(row.product_variant_id)) continue;
+        const variant = Array.isArray(row.product_variants)
+          ? row.product_variants[0]
+          : row.product_variants;
         unique.set(row.product_variant_id, {
           productVariantId: row.product_variant_id,
           name: row.name ?? 'Product',
-          sku: null,
+          sku: variant?.sku?.trim() || null,
         });
       }
       setSkus([...unique.values()]);
@@ -194,7 +215,7 @@ export function useReportSkus() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, currentWorkspaceId]);
 
   return { skus, loading };
 }
@@ -262,11 +283,13 @@ export function formatWorkMinutes(totalMinutes: number): string {
 export async function fetchTodaySalesByProduct(
   agentId: string,
   workDate: string,
+  workspaceId: string,
 ): Promise<Record<string, number>> {
   const { data } = await supabase
     .from('daily_sales_tracking')
     .select('product_variant_id, quantity_sold')
     .eq('agent_id', agentId)
+    .eq('workspace_id', workspaceId)
     .eq('work_date', workDate);
 
   const totals: Record<string, number> = {};
@@ -281,11 +304,13 @@ export async function fetchTodaySalesByProduct(
 export async function fetchTodayMorningOpeningStock(
   agentId: string,
   workDate: string,
+  workspaceId: string,
 ): Promise<Record<string, number>> {
   const { data } = await supabase
     .from('daily_stock_reports')
     .select('product_variant_id, opening_stock')
     .eq('agent_id', agentId)
+    .eq('workspace_id', workspaceId)
     .eq('work_date', workDate)
     .eq('report_type', 'morning');
 
@@ -301,8 +326,9 @@ export async function fetchTodayMorningOpeningStock(
 export async function fetchTodayMorningStockCounts(
   agentId: string,
   workDate: string,
+  workspaceId: string,
 ): Promise<Record<string, number>> {
-  return fetchTodayMorningOpeningStock(agentId, workDate);
+  return fetchTodayMorningOpeningStock(agentId, workDate, workspaceId);
 }
 
 interface SkuCountFieldProps {

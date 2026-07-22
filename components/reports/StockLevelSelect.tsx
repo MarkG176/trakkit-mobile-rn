@@ -1,11 +1,6 @@
 /**
- * Stock-level picker — Material-style exposed dropdown (inline expand).
- * No nested Modal (safe inside ReportDialogShell). No status icons — text hierarchy only.
- *
- * Android / M3 cues:
- * - Outlined field shows current selection + trailing chevron
- * - Menu opens below field, elevated, single-line items
- * - Selected item via weight + fill (not icon clutter)
+ * Stock-level picker — compact inline expand (safe inside ReportDialogShell).
+ * Horizontal product row: name + SKU left, select trigger right.
  */
 import { memo, useCallback } from 'react';
 import { Platform, Pressable, View } from 'react-native';
@@ -19,6 +14,7 @@ type StockLevelSelectProps = {
   onChange: (value: StockLevelValue) => void;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  compact?: boolean;
 };
 
 export const StockLevelSelect = memo(function StockLevelSelect({
@@ -26,6 +22,7 @@ export const StockLevelSelect = memo(function StockLevelSelect({
   onChange,
   expanded,
   onExpandedChange,
+  compact = false,
 }: StockLevelSelectProps) {
   const selected = STOCK_LEVEL_OPTIONS.find((o) => o.value === value);
 
@@ -38,19 +35,13 @@ export const StockLevelSelect = memo(function StockLevelSelect({
   );
 
   return (
-    <View>
-      <AppText
-        style={{
-          ...typography.caption,
-          color: colors.secondaryForeground,
-          marginBottom: spacing.xs,
-          fontWeight: '500',
-        }}
-      >
-        Stock level
-      </AppText>
-
-      {/* Exposed dropdown anchor — outlined field */}
+    <View
+      style={
+        compact
+          ? { width: 188, flexShrink: 0 }
+          : { minWidth: 200, flexShrink: 0 }
+      }
+    >
       <Pressable
         onPress={() => onExpandedChange(!expanded)}
         hitSlop={hitSlop}
@@ -64,33 +55,35 @@ export const StockLevelSelect = memo(function StockLevelSelect({
           borderWidth: 1,
           borderColor: expanded ? colors.primary : colors.border,
           borderRadius: radius.md,
-          backgroundColor: pressed ? colors.muted : colors.card,
-          paddingHorizontal: spacing.md,
+          backgroundColor: pressed ? colors.muted : colors.muted,
+          paddingHorizontal: spacing.sm + 4,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.sm,
+          gap: spacing.xs,
         })}
       >
+        {selected ? (
+          <Ionicons name={selected.icon} size={16} color={selected.color} />
+        ) : null}
         <AppText
           numberOfLines={1}
           style={{
             flex: 1,
-            fontSize: typography.body.fontSize,
+            fontSize: compact ? 13 : typography.body.fontSize,
             fontWeight: selected ? '500' : '400',
             color: selected ? colors.foreground : colors.secondaryForeground,
             flexShrink: 1,
           }}
         >
-          {selected?.label ?? 'Select stock level...'}
+          {selected?.label ?? 'Select stock level'}
         </AppText>
         <Ionicons
           name={expanded ? 'caret-up' : 'caret-down'}
-          size={16}
+          size={14}
           color={colors.secondaryForeground}
         />
       </Pressable>
 
-      {/* Menu surface — below field, elevated (Android exposed menu) */}
       {expanded ? (
         <View
           style={{
@@ -100,6 +93,7 @@ export const StockLevelSelect = memo(function StockLevelSelect({
             borderRadius: radius.md,
             backgroundColor: colors.card,
             overflow: 'hidden',
+            zIndex: 10,
             ...Platform.select({
               android: { elevation: 4 },
               ios: {
@@ -122,9 +116,11 @@ export const StockLevelSelect = memo(function StockLevelSelect({
                 accessibilityRole="menuitem"
                 accessibilityState={{ selected: active }}
                 style={({ pressed }) => ({
-                  minHeight: 48,
-                  paddingHorizontal: spacing.md,
-                  justifyContent: 'center',
+                  minHeight: 44,
+                  paddingHorizontal: spacing.sm + 4,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.sm,
                   borderTopWidth: index === 0 ? 0 : 1,
                   borderTopColor: colors.border,
                   backgroundColor: active
@@ -134,12 +130,14 @@ export const StockLevelSelect = memo(function StockLevelSelect({
                       : colors.card,
                 })}
               >
+                <Ionicons name={opt.icon} size={18} color={opt.color} />
                 <AppText
                   numberOfLines={1}
                   style={{
-                    fontSize: typography.body.fontSize,
+                    fontSize: 14,
                     fontWeight: active ? '600' : '400',
                     color: colors.foreground,
+                    flexShrink: 1,
                   }}
                 >
                   {opt.label}
@@ -156,16 +154,18 @@ export const StockLevelSelect = memo(function StockLevelSelect({
 type StockProductRowProps = {
   productVariantId: string;
   name: string;
+  sku?: string | null;
   value: StockLevelValue | '';
   expanded: boolean;
   onExpandedChange: (productVariantId: string | null) => void;
   onChange: (productVariantId: string, value: StockLevelValue) => void;
 };
 
-/** Bordered product card with exposed stock-level dropdown. */
+/** Horizontal product row: identity left, compact stock select right. */
 export const StockProductRow = memo(function StockProductRow({
   productVariantId,
   name,
+  sku,
   value,
   expanded,
   onExpandedChange,
@@ -174,32 +174,53 @@ export const StockProductRow = memo(function StockProductRow({
   return (
     <View
       style={{
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        backgroundColor: colors.card,
-        padding: spacing.md,
-        marginBottom: spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xs,
       }}
     >
-      <AppText
+      <View
         style={{
-          fontSize: typography.body.fontSize,
-          fontWeight: '600',
-          color: colors.foreground,
-          marginBottom: spacing.md,
-          flexShrink: 1,
-          lineHeight: 22,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
         }}
       >
-        {name}
-      </AppText>
-      <StockLevelSelect
-        value={value}
-        expanded={expanded}
-        onExpandedChange={(next) => onExpandedChange(next ? productVariantId : null)}
-        onChange={(next) => onChange(productVariantId, next)}
-      />
+        <View style={{ flex: 1, flexShrink: 1, minWidth: 0 }}>
+          <AppText
+            style={{
+              fontSize: typography.body.fontSize,
+              fontWeight: '600',
+              color: colors.foreground,
+              flexShrink: 1,
+              lineHeight: 22,
+            }}
+            numberOfLines={2}
+          >
+            {name}
+          </AppText>
+          {sku ? (
+            <AppText
+              style={{
+                fontSize: 12,
+                color: colors.secondaryForeground,
+                marginTop: 2,
+              }}
+              numberOfLines={1}
+            >
+              {`SKU: ${sku}`}
+            </AppText>
+          ) : null}
+        </View>
+        <StockLevelSelect
+          value={value}
+          compact
+          expanded={expanded}
+          onExpandedChange={(next) => onExpandedChange(next ? productVariantId : null)}
+          onChange={(next) => onChange(productVariantId, next)}
+        />
+      </View>
     </View>
   );
 });

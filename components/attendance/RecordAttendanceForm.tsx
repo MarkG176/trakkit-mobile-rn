@@ -62,14 +62,14 @@ export function RecordAttendanceForm() {
     }
     setProfileLoading(true);
     try {
-      const url = await getLastCheckInPhotoUrl(user.id);
+      const url = await getLastCheckInPhotoUrl(user.id, currentWorkspaceId);
       setPhotoUrl(url);
     } catch (error) {
       console.error('Error loading check-in photo:', error);
     } finally {
       setProfileLoading(false);
     }
-  }, [user]);
+  }, [user, currentWorkspaceId]);
 
   useEffect(() => {
     loadPhoto();
@@ -123,13 +123,15 @@ export function RecordAttendanceForm() {
       };
 
       const { synced } = await writeWithOfflineQueue('agent_status_log', payload);
+      const wasCheckIn = pendingStatus === 'checked_in';
+
       if (!synced) {
         Alert.alert('Saved offline', 'Check-in will sync when you reconnect.');
       } else {
-        Alert.alert('Success', pendingStatus === 'checked_in' ? 'Checked in!' : 'Checked out!');
+        Alert.alert('Success', wasCheckIn ? 'Checked in!' : 'Checked out!');
       }
 
-      if (pendingStatus === 'checked_in') {
+      if (wasCheckIn) {
         await startBackgroundTracking();
       } else {
         await stopBackgroundTracking();

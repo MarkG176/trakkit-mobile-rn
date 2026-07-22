@@ -102,7 +102,7 @@ export default function ReportsScreen() {
     if (!showMorningAvailability) return null;
     return {
       key: 'morning',
-      title: 'Stock Availability',
+      title: 'Morning Report',
       icon: 'sunny-outline',
       primary: true,
       onPress: () => setAvailabilityDialog('morning'),
@@ -113,7 +113,7 @@ export default function ReportsScreen() {
     if (!showEvening) return null;
     return {
       key: 'evening',
-      title: 'Start Evening Report',
+      title: 'Evening Report',
       icon: 'moon-outline',
       onPress: () => {
         if (eveningCode === 'CRM-0020' || eveningCode === 'CRM-0023') {
@@ -127,22 +127,23 @@ export default function ReportsScreen() {
     };
   }, [showEvening, eveningCode, showMorningAvailability]);
 
+  const price = useMemo((): ReportTileItem | null => {
+    if (!showPrice) return null;
+    return {
+      key: 'price',
+      title: 'Price Report',
+      icon: 'pricetag-outline',
+      onPress: () => setActive('price'),
+    };
+  }, [showPrice]);
+
   const moreTiles = useMemo((): ReportTileItem[] => {
     const items: ReportTileItem[] = [];
-
-    if (showPrice) {
-      items.push({
-        key: 'price',
-        title: 'Price Report',
-        icon: 'pricetag-outline',
-        onPress: () => setActive('price'),
-      });
-    }
 
     if (isEnabled('CRM-0024')) {
       items.push({
         key: 'CRM-0024',
-        title: 'Seeding Evening Report',
+        title: 'Seeding Evening',
         icon: 'leaf-outline',
         onPress: () => setActive('seeding_evening'),
       });
@@ -153,23 +154,23 @@ export default function ReportsScreen() {
       items.push({
         key: 'closing',
         title: 'Closing Report',
-        icon: 'storefront-outline',
+        icon: 'cube-outline',
         onPress: () => setActive('closing'),
       });
     }
     if (isEnabled('CRM-0023') && used !== 'CRM-0023') {
       items.push({
         key: 'survey_closing',
-        title: 'Survey Closing Report',
+        title: 'Survey Closing',
         icon: 'clipboard-outline',
         onPress: () => setActive('survey_closing'),
       });
     }
 
     return items;
-  }, [showPrice, eveningCode, isEnabled]);
+  }, [eveningCode, isEnabled]);
 
-  const hasAny = morning || evening || moreTiles.length > 0;
+  const hasAny = morning || evening || price || moreTiles.length > 0;
 
   if (active) {
     return (
@@ -188,7 +189,12 @@ export default function ReportsScreen() {
           <EmptyMessage>No reports enabled for this project.</EmptyMessage>
         ) : (
           <>
-            <StockReportsLauncher morning={morning} evening={evening} moreTiles={moreTiles} />
+            <StockReportsLauncher
+              morning={morning}
+              evening={evening}
+              price={price}
+              moreTiles={moreTiles}
+            />
             <ReportsNotesCard />
             <ReportsImagesCard />
           </>

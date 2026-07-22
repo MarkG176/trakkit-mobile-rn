@@ -18,17 +18,20 @@ export default function RankingsScreen() {
 
   useEffect(() => {
     const load = async () => {
-      let query = supabase
+      if (!currentWorkspaceId) {
+        setRanks([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      const { data } = await supabase
         .from('agent_ranks')
         .select('agent_id, current_rank, total_points')
+        .eq('workspace_id', currentWorkspaceId)
         .order('total_points', { ascending: false })
         .limit(20);
 
-      if (currentWorkspaceId) {
-        query = query.eq('workspace_id', currentWorkspaceId);
-      }
-
-      const { data } = await query;
       setRanks(data ?? []);
       setLoading(false);
     };
@@ -36,14 +39,14 @@ export default function RankingsScreen() {
     load();
 
     const channel = supabase
-      .channel(`supervisor-rankings-${currentWorkspaceId ?? 'all'}`)
+      .channel(`supervisor-rankings-${currentWorkspaceId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'agent_ranks',
-          ...(currentWorkspaceId ? { filter: `workspace_id=eq.${currentWorkspaceId}` } : {}),
+          filter: `workspace_id=eq.${currentWorkspaceId}`,
         },
         () => {
           load();
@@ -58,7 +61,7 @@ export default function RankingsScreen() {
 
   return (
     <ComponentGate code="CRM-0122">
-      <Screen scroll>
+      <Screen scroll showBack>
         {loading ? (
           <LoadingSpinner label="Loading rankings" />
         ) : (

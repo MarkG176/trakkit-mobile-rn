@@ -55,7 +55,7 @@ export default function SalesScreen() {
 
   return (
     <ComponentGate code="CRM-0121">
-      <Screen scroll>
+      <Screen scroll showBack>
         {loading ? (
           <LoadingSpinner label="Loading sales" />
         ) : (

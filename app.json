@@ -15,7 +15,8 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "TraKKiT needs your location to verify check-ins and record field activity.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "TraKKiT tracks your location during active shifts for supervisor visibility.",
-        "NSCameraUsageDescription": "TraKKiT needs camera access for attendance selfies and field photos."
+        "NSCameraUsageDescription": "TraKKiT needs camera access for attendance selfies and field photos.",
+        "NSMicrophoneUsageDescription": "TraKKiT needs microphone access to record interaction audio."
       }
     },
     "android": {
@@ -31,6 +32,7 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
+        "RECORD_AUDIO",
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION"
       ],
@@ -69,6 +71,12 @@
         "expo-camera",
         {
           "cameraPermission": "Allow TraKKiT to access your camera for attendance selfies."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow TraKKiT to record interaction audio."
         }
       ]
     ],

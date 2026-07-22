@@ -5,6 +5,7 @@ export { Input } from './Input';
 export { Badge } from './Badge';
 export { Screen, SectionHeader } from './Screen';
 export { IconButton } from './IconButton';
+export { IconChip } from './IconChip';
 export { LoadingSpinner, EmptyMessage, CenteredScreen } from './PageLayout';
 export { ListItemCard, ChipSelect, SelectCard } from './ListPatterns';
 export { ProgressBar } from './ProgressBar';
