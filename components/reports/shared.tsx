@@ -203,7 +203,7 @@ export function useReportSkus() {
           : row.product_variants;
         unique.set(row.product_variant_id, {
           productVariantId: row.product_variant_id,
-          name: row.name ?? 'Product',
+          name: (typeof row.name === 'string' && row.name.trim()) || 'Product',
           sku: variant?.sku?.trim() || null,
         });
       }

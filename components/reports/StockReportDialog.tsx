@@ -384,10 +384,12 @@ export function StockReportDialog({
           data={skus}
           keyExtractor={(item) => item.productVariantId}
           renderItem={isEvening ? renderEveningItem : renderMorningItem}
-          style={{ maxHeight: maxListH }}
+          style={{ maxHeight: maxListH, overflow: 'visible' }}
+          contentContainerStyle={{ overflow: 'visible' }}
           nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={false}
         />
       )}
     </ReportDialogShell>

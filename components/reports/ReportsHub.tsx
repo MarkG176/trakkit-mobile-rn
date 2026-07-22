@@ -56,173 +56,72 @@ function CardTitle({
   );
 }
 
-function ReportMenuRow({
-  title,
-  icon,
-  onPress,
-  showDivider,
-}: {
-  title: string;
-  icon: IoniconName;
-  onPress: () => void;
-  showDivider?: boolean;
-}) {
+const TILE_SIZE = 56;
+const GRID_COLS = 3;
+const TILE_ROW_GAP = spacing.lg;
+
+function chunkTiles<T>(items: T[], size: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    rows.push(items.slice(i, i + size));
+  }
+  return rows;
+}
+
+/** Force two-line labels: "Morning Report" → "Morning\nReport". */
+function twoLineLabel(title: string): string {
+  const trimmed = title.trim();
+  const idx = trimmed.indexOf(' ');
+  if (idx <= 0) return trimmed;
+  return `${trimmed.slice(0, idx)}\n${trimmed.slice(idx + 1)}`;
+}
+
+function ReportSquareTile({ title, icon, onPress }: Omit<ReportTileItem, 'key' | 'primary'>) {
   return (
     <Pressable
       onPress={onPress}
       hitSlop={hitSlop}
       accessibilityRole="button"
       accessibilityLabel={title}
+      style={({ pressed }) => ({
+        flex: 1,
+        alignItems: 'center',
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
-      {({ pressed }) => (
-        <View
-          style={{
-            minHeight: 52,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.sm + 4,
-            paddingVertical: spacing.sm + 2,
-            paddingHorizontal: spacing.sm,
-            marginLeft: spacing.md,
-            backgroundColor: pressed ? colors.muted : 'transparent',
-            borderBottomWidth: showDivider ? 1 : 0,
-            borderBottomColor: colors.border,
-          }}
-        >
-          <IconChip
-            name={icon}
-            backgroundColor={colors.primaryLight}
-            color={colors.primary}
-            size={40}
-            iconSize={20}
-          />
-          <AppText
-            style={{
-              flex: 1,
-              flexShrink: 1,
-              fontSize: 16,
-              fontWeight: '500',
-              color: colors.foreground,
-            }}
-            numberOfLines={1}
-          >
-            {title}
-          </AppText>
-          <Ionicons name="chevron-forward" size={18} color={colors.secondaryForeground} />
-        </View>
-      )}
+      <View
+        style={{
+          width: TILE_SIZE,
+          height: TILE_SIZE,
+          borderRadius: radius.md,
+          backgroundColor: colors.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: spacing.sm,
+        }}
+      >
+        <Ionicons name={icon} size={28} color={colors.primaryForeground} />
+      </View>
+      <AppText
+        style={{
+          width: '100%',
+          fontSize: 12,
+          fontWeight: '500',
+          color: colors.foreground,
+          textAlign: 'center',
+          lineHeight: 16,
+          minHeight: 32,
+        }}
+        numberOfLines={2}
+      >
+        {twoLineLabel(title)}
+      </AppText>
     </Pressable>
   );
 }
 
-function ReportSection({
-  id,
-  title,
-  icon,
-  items,
-  expanded,
-  onToggle,
-}: {
-  id: string;
-  title: string;
-  icon: IoniconName;
-  items: ReportTileItem[];
-  expanded: boolean;
-  onToggle: (id: string) => void;
-}) {
-  if (items.length === 0) return null;
-
-  return (
-    <View
-      style={{
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radius.md,
-        overflow: 'hidden',
-        marginBottom: spacing.sm,
-      }}
-    >
-      <Pressable
-        onPress={() => onToggle(id)}
-        hitSlop={hitSlop}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        accessibilityLabel={`${title}, ${items.length} reports`}
-      >
-        {({ pressed }) => (
-          <View
-            style={{
-              minHeight: 56,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.sm + 4,
-              paddingHorizontal: spacing.sm + 2,
-              paddingVertical: spacing.sm,
-              backgroundColor: pressed ? colors.muted : colors.card,
-            }}
-          >
-            <IconChip
-              name={icon}
-              backgroundColor={colors.primary}
-              color={colors.primaryForeground}
-              size={40}
-              iconSize={20}
-            />
-            <AppText
-              style={{
-                flex: 1,
-                flexShrink: 1,
-                fontSize: 16,
-                fontWeight: '600',
-                color: colors.foreground,
-              }}
-              numberOfLines={1}
-            >
-              {title}
-            </AppText>
-            <View
-              style={{
-                minWidth: 24,
-                height: 24,
-                borderRadius: radius.full,
-                backgroundColor: colors.muted,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: spacing.xs + 2,
-              }}
-            >
-              <AppText style={{ fontSize: 12, fontWeight: '600', color: colors.secondaryForeground }}>
-                {items.length}
-              </AppText>
-            </View>
-            <Ionicons
-              name={expanded ? 'chevron-up' : 'chevron-down'}
-              size={20}
-              color={colors.secondaryForeground}
-            />
-          </View>
-        )}
-      </Pressable>
-
-      {expanded ? (
-        <View style={{ borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.muted }}>
-          {items.map((item, index) => (
-            <ReportMenuRow
-              key={item.key}
-              title={item.title}
-              icon={item.icon}
-              onPress={item.onPress}
-              showDivider={index < items.length - 1}
-            />
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
 /**
- * Reports card — grouped expandable sections (nested menu).
+ * Reports card — flat grid of square icon launchers (no nested sections).
  */
 export function StockReportsLauncher({
   morning,
@@ -235,44 +134,39 @@ export function StockReportsLauncher({
   price?: ReportTileItem | null;
   moreTiles?: ReportTileItem[];
 }) {
-  const daily: ReportTileItem[] = [];
-  if (morning) daily.push(morning);
-  if (evening) daily.push(evening);
+  const tiles: ReportTileItem[] = [];
+  if (morning) tiles.push(morning);
+  if (evening) tiles.push(evening);
+  if (price) tiles.push(price);
+  tiles.push(...moreTiles);
 
-  const pricing: ReportTileItem[] = [];
-  if (price) pricing.push(price);
+  if (tiles.length === 0) return null;
 
-  const other = moreTiles;
-
-  const sections = [
-    { id: 'daily', title: 'Daily', icon: 'today-outline' as IoniconName, items: daily },
-    { id: 'pricing', title: 'Pricing', icon: 'pricetag-outline' as IoniconName, items: pricing },
-    { id: 'other', title: 'Other', icon: 'ellipsis-horizontal' as IoniconName, items: other },
-  ].filter((s) => s.items.length > 0);
-
-  const defaultOpen = sections[0]?.id ?? null;
-  const [expandedId, setExpandedId] = useState<string | null>(defaultOpen);
-
-  if (sections.length === 0) return null;
-
-  const onToggle = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
+  const rows = chunkTiles(tiles, GRID_COLS);
 
   return (
     <Card style={{ marginBottom: spacing.md }}>
       <CardTitle icon="clipboard-outline" title="Reports" />
-      {sections.map((section) => (
-        <ReportSection
-          key={section.id}
-          id={section.id}
-          title={section.title}
-          icon={section.icon}
-          items={section.items}
-          expanded={expandedId === section.id}
-          onToggle={onToggle}
-        />
-      ))}
+      <View style={{ gap: TILE_ROW_GAP }}>
+        {rows.map((row) => (
+          <View
+            key={row.map((t) => t.key).join('-')}
+            style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+          >
+            {row.map((tile) => (
+              <ReportSquareTile
+                key={tile.key}
+                title={tile.title}
+                icon={tile.icon}
+                onPress={tile.onPress}
+              />
+            ))}
+            {Array.from({ length: GRID_COLS - row.length }, (_, i) => (
+              <View key={`pad-${i}`} style={{ flex: 1 }} />
+            ))}
+          </View>
+        ))}
+      </View>
     </Card>
   );
 }
