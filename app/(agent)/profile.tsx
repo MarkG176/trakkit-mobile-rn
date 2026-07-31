@@ -11,7 +11,7 @@ import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { WorkHoursCard } from '@/components/dashboard/WorkHoursCard';
 import { useAgentDashboardData } from '@/hooks/useAgentDashboardData';
 import { AppText, Card, IconChip } from '@/components/ui';
-import { colors, hitSlop, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
 function displayName(email?: string | null): string {
@@ -225,8 +225,17 @@ export default function ProfileScreen() {
             </View>
           ) : null}
 
-          <View style={{ flex: 1 }}>
-            {links.map((link, index) => (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start',
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.md,
+              gap: spacing.md,
+            }}
+          >
+            {links.map((link) => (
               <Pressable
                 key={link.code}
                 onPress={() => router.push(link.path as never)}
@@ -235,67 +244,61 @@ export default function ProfileScreen() {
                 accessibilityLabel={link.label}
                 style={({ pressed }) => ({
                   flex: 1,
-                  minHeight: 72,
-                  flexDirection: 'row',
                   alignItems: 'center',
-                  gap: spacing.md,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.md,
-                  backgroundColor: pressed ? colors.muted : colors.card,
-                  borderBottomWidth: index < links.length - 1 ? 1 : 0,
-                  borderBottomColor: colors.border,
+                  minWidth: 0,
+                  opacity: pressed ? 0.85 : 1,
                 })}
               >
-                <IconChip
-                  name={link.icon}
-                  backgroundColor={colors.primaryLight}
-                  color={colors.primary}
-                  size={52}
-                  iconSize={26}
-                />
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.primary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: spacing.sm,
+                  }}
+                >
+                  <Ionicons name={link.icon} size={28} color={colors.primaryForeground} />
+                </View>
                 <AppText
                   style={{
-                    flex: 1,
-                    flexShrink: 1,
-                    fontSize: 16,
-                    fontWeight: '600',
+                    width: '100%',
+                    fontSize: 12,
+                    fontWeight: '500',
                     color: colors.foreground,
+                    textAlign: 'center',
+                    lineHeight: 16,
                   }}
-                  numberOfLines={1}
                 >
                   {link.label}
                 </AppText>
               </Pressable>
             ))}
           </View>
+        </Card>
 
+        <View style={{ alignItems: 'flex-end', marginTop: 'auto' }}>
           <Pressable
             onPress={handleSignOut}
             hitSlop={hitSlop}
             accessibilityRole="button"
             accessibilityLabel="Logout"
             style={({ pressed }) => ({
-              minHeight: 72,
+              minHeight: 48,
               flexDirection: 'row',
               alignItems: 'center',
-              gap: spacing.md,
+              gap: spacing.sm,
               paddingHorizontal: spacing.md,
-              paddingVertical: spacing.md,
-              backgroundColor: pressed ? '#FFE5E3' : colors.card,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
+              paddingVertical: spacing.sm,
+              borderRadius: radius.md,
+              backgroundColor: pressed ? '#FFE5E3' : '#FEE2E2',
             })}
           >
-            <IconChip
-              name="log-out-outline"
-              backgroundColor="#FFE5E3"
-              color={colors.destructive}
-              size={52}
-              iconSize={26}
-            />
+            <Ionicons name="log-out-outline" size={22} color={colors.destructive} />
             <AppText
               style={{
-                flex: 1,
                 fontSize: 16,
                 fontWeight: '600',
                 color: colors.destructive,
@@ -304,7 +307,7 @@ export default function ProfileScreen() {
               Logout
             </AppText>
           </Pressable>
-        </Card>
+        </View>
       </SafeAreaView>
     </ComponentGate>
   );

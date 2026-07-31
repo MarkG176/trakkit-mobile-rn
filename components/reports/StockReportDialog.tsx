@@ -141,7 +141,7 @@ export function StockReportDialog({
   const resolvedTitle =
     title ??
     (reportType === 'morning'
-      ? 'Morning Stock Report'
+      ? 'Stock Report'
       : reportType === 'evening'
         ? 'Evening Stock Report'
         : 'Stock Report');

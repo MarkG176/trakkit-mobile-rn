@@ -178,8 +178,10 @@ export function useReportSkus() {
           product_variant_id,
           name,
           product_variants!inner (
+            name,
             sku,
-            workspace_id
+            workspace_id,
+            products ( name )
           ),
           agent_tasks!inner (
             workspace_id,
@@ -201,9 +203,21 @@ export function useReportSkus() {
         const variant = Array.isArray(row.product_variants)
           ? row.product_variants[0]
           : row.product_variants;
+        const productRaw = variant?.products;
+        const product = Array.isArray(productRaw) ? productRaw[0] : productRaw;
+        const variantName =
+          typeof variant?.name === 'string' ? variant.name.trim() : '';
+        const productName =
+          typeof product?.name === 'string' ? product.name.trim() : '';
+        const inventoryName =
+          typeof row.name === 'string' ? row.name.trim() : '';
+        const displayName =
+          variantName && productName
+            ? `${variantName} - ${productName}`
+            : variantName || productName || inventoryName || 'Product';
         unique.set(row.product_variant_id, {
           productVariantId: row.product_variant_id,
-          name: (typeof row.name === 'string' && row.name.trim()) || 'Product',
+          name: displayName,
           sku: variant?.sku?.trim() || null,
         });
       }

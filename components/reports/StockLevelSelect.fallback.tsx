@@ -1,6 +1,9 @@
 /**
- * Stock-level product row — name + grey caret | large ≥40% tinted availability bar.
- * Status text on the same line as the product name; menu under the bar.
+ * Stock-level product row — wrapped "variant - product" title + ≥40% availability bar.
+ * Colour-coded option menu anchors under the trigger. Safe inside ReportDialogShell.
+ *
+ * FALLBACK SNAPSHOT — reference-only; not imported by active Stock Report UI.
+ * Active implementation: StockLevelSelect.tsx
  */
 import { memo, useCallback } from 'react';
 import { Platform, Pressable, View } from 'react-native';
@@ -9,19 +12,11 @@ import { AppText } from '@/components/ui';
 import { colors, hitSlop, radius, spacing, typography } from '@/theme';
 import { STOCK_LEVEL_OPTIONS, type StockLevelValue } from './shared';
 
-/** Saturated fills (readable with dark status-coloured labels). */
 const OPTION_TINT: Record<StockLevelValue, string> = {
-  available: '#4ADE80',
-  low_stock: '#FACC15',
-  unavailable: '#F87171',
-  not_sold: '#9CA3AF',
-};
-
-const OPTION_LABEL: Record<StockLevelValue, string> = {
-  available: '#14532D',
-  low_stock: '#713F12',
-  unavailable: '#7F1D1D',
-  not_sold: '#1F2937',
+  available: '#DCFCE7',
+  low_stock: '#FEF9C3',
+  unavailable: '#FEE2E2',
+  not_sold: '#F3F4F6',
 };
 
 type StockProductRowProps = {
@@ -34,7 +29,7 @@ type StockProductRowProps = {
   onChange: (productVariantId: string, value: StockLevelValue) => void;
 };
 
-/** Same-line name + caret | large colour-coded availability bar (≥40%). */
+/** Left: full wrapping title. Right: ≥40% colour-coded availability dropdown. */
 export const StockProductRow = memo(function StockProductRow({
   productVariantId,
   name,
@@ -46,10 +41,6 @@ export const StockProductRow = memo(function StockProductRow({
   const displayName = name?.trim() || 'Product';
   const currentValue: StockLevelValue = value || 'available';
   const selected = STOCK_LEVEL_OPTIONS.find((o) => o.value === currentValue)!;
-
-  const toggle = useCallback(() => {
-    onExpandedChange(expanded ? null : productVariantId);
-  }, [expanded, onExpandedChange, productVariantId]);
 
   const pick = useCallback(
     (next: StockLevelValue) => {
@@ -82,22 +73,10 @@ export const StockProductRow = memo(function StockProductRow({
           minHeight: 56,
         }}
       >
-        {/* Name + grey caret at right of name column */}
-        <View
-          style={{
-            flexGrow: 1,
-            flexShrink: 1,
-            flexBasis: 0,
-            minWidth: 0,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.xs,
-          }}
-        >
+        {/* Product identity — wraps fully; ≤60% of row */}
+        <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0 }}>
           <AppText
             style={{
-              flexShrink: 1,
-              flexGrow: 1,
               fontSize: typography.body.fontSize,
               fontWeight: '600',
               color: '#000000',
@@ -106,31 +85,11 @@ export const StockProductRow = memo(function StockProductRow({
           >
             {displayName}
           </AppText>
-          <Pressable
-            onPress={toggle}
-            hitSlop={hitSlop}
-            accessibilityRole="button"
-            accessibilityState={{ expanded }}
-            accessibilityLabel={expanded ? 'Collapse stock level' : 'Expand stock level'}
-            style={{
-              minWidth: 44,
-              minHeight: 44,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Ionicons
-              name={expanded ? 'caret-up' : 'caret-down'}
-              size={16}
-              color="#9CA3AF"
-            />
-          </Pressable>
         </View>
 
-        {/* Large tinted availability bar — status label only, ≥40% */}
+        {/* Colour-coded availability — ≥40% of row width */}
         <Pressable
-          onPress={toggle}
+          onPress={() => onExpandedChange(expanded ? null : productVariantId)}
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityState={{ expanded }}
@@ -140,28 +99,35 @@ export const StockProductRow = memo(function StockProductRow({
             flexGrow: 0,
             flexShrink: 0,
             minWidth: '40%',
-            minHeight: 56,
-            paddingVertical: spacing.md,
-            paddingHorizontal: spacing.md,
+            minHeight: 48,
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.sm,
             borderRadius: radius.sm,
             borderWidth: 1,
-            borderColor: selected.color,
+            borderColor: colors.border,
             backgroundColor: pressed ? colors.muted : OPTION_TINT[currentValue],
+            flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
+            gap: spacing.xs,
           })}
         >
           <AppText
             numberOfLines={1}
             style={{
+              flexShrink: 1,
               fontSize: typography.body.fontSize,
-              fontWeight: '700',
-              color: OPTION_LABEL[currentValue],
-              textAlign: 'center',
+              fontWeight: '600',
+              color: '#000000',
             }}
           >
             {selected.label}
           </AppText>
+          <Ionicons
+            name={expanded ? 'caret-up' : 'caret-down'}
+            size={14}
+            color="#9CA3AF"
+          />
         </Pressable>
 
         {expanded ? (
@@ -170,8 +136,8 @@ export const StockProductRow = memo(function StockProductRow({
               position: 'absolute',
               top: '100%',
               right: 0,
-              width: '52%',
-              minWidth: '52%',
+              width: '40%',
+              minWidth: '40%',
               marginTop: spacing.xs,
               borderWidth: 1,
               borderColor: colors.border,
@@ -201,17 +167,17 @@ export const StockProductRow = memo(function StockProductRow({
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                   style={({ pressed }) => ({
-                    minHeight: 68,
-                    paddingVertical: spacing.md,
-                    paddingHorizontal: spacing.md,
+                    minHeight: 48,
+                    paddingVertical: spacing.sm,
+                    paddingHorizontal: spacing.sm,
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginHorizontal: spacing.xs,
-                    marginTop: index === 0 ? spacing.sm : spacing.sm,
+                    marginTop: index === 0 ? spacing.xs : 2,
                     marginBottom:
-                      index === STOCK_LEVEL_OPTIONS.length - 1 ? spacing.sm : 0,
-                    borderWidth: 1.5,
-                    borderColor: opt.color,
+                      index === STOCK_LEVEL_OPTIONS.length - 1 ? spacing.xs : 0,
+                    borderWidth: 1,
+                    borderColor: colors.border,
                     borderRadius: radius.sm,
                     backgroundColor: pressed ? '#E5E7EB' : OPTION_TINT[opt.value],
                   })}
@@ -220,8 +186,8 @@ export const StockProductRow = memo(function StockProductRow({
                     numberOfLines={1}
                     style={{
                       fontSize: typography.body.fontSize,
-                      fontWeight: active ? '700' : '600',
-                      color: OPTION_LABEL[opt.value],
+                      fontWeight: active ? '700' : '500',
+                      color: '#000000',
                       textAlign: 'center',
                       width: '100%',
                     }}

@@ -4,7 +4,7 @@ import { ComponentGate } from '@/components/ComponentGate';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useAuth } from '@/providers/AuthProvider';
 import { Screen, AppText, Card, IconChip } from '@/components/ui';
-import { colors, hitSlop, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 import Constants from 'expo-constants';
 
@@ -54,10 +54,9 @@ type MenuRowProps = {
   icon: IoniconName;
   onPress: () => void;
   destructive?: boolean;
-  showDivider?: boolean;
 };
 
-function MenuRow({ label, icon, onPress, destructive, showDivider }: MenuRowProps) {
+function MenuRow({ label, icon, onPress, destructive }: MenuRowProps) {
   const iconColor = destructive ? colors.destructive : colors.primary;
   const chipBg = destructive ? '#FFE5E3' : colors.primaryLight;
   const labelColor = destructive ? colors.destructive : colors.foreground;
@@ -68,34 +67,33 @@ function MenuRow({ label, icon, onPress, destructive, showDivider }: MenuRowProp
       hitSlop={hitSlop}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={{ flex: 1 }}
     >
       {({ pressed }) => (
         <View
           style={{
-            flex: 1,
-            minHeight: 72,
+            minHeight: 56,
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.md,
             paddingHorizontal: spacing.md,
-            paddingVertical: spacing.md,
+            paddingVertical: spacing.sm + 2,
+            borderRadius: radius.md,
             backgroundColor: pressed
               ? destructive
                 ? '#FFE5E3'
                 : colors.muted
               : colors.card,
-            borderBottomWidth: showDivider ? 1 : 0,
-            borderBottomColor: colors.border,
           }}
         >
-          <IconChip
-            name={icon}
-            backgroundColor={chipBg}
-            color={iconColor}
-            size={52}
-            iconSize={26}
-          />
+          <View style={{ padding: spacing.xs }}>
+            <IconChip
+              name={icon}
+              backgroundColor={chipBg}
+              color={iconColor}
+              size={36}
+              iconSize={18}
+            />
+          </View>
           <AppText
             style={{
               flex: 1,
@@ -129,7 +127,7 @@ export default function MoreScreen() {
 
   return (
     <ComponentGate code="CRM-0100">
-      <Screen>
+      <Screen scroll>
         <View
           style={{
             flexDirection: 'row',
@@ -140,8 +138,8 @@ export default function MoreScreen() {
         >
           <IconChip
             name="person"
-            size={56}
-            iconSize={28}
+            size={40}
+            iconSize={20}
             backgroundColor={colors.primaryLight}
             color={colors.primary}
           />
@@ -164,13 +162,20 @@ export default function MoreScreen() {
           </View>
         </View>
 
-        <Card style={{ flex: 1, padding: 0, elevation: 0, shadowOpacity: 0 }}>
-          {visibleLinks.map((link, index) => (
+        <Card
+          style={{
+            paddingVertical: spacing.sm,
+            paddingHorizontal: spacing.sm,
+            gap: spacing.xs,
+            elevation: 0,
+            shadowOpacity: 0,
+          }}
+        >
+          {visibleLinks.map((link) => (
             <MenuRow
               key={link.code}
               label={link.label}
               icon={link.icon}
-              showDivider
               onPress={() => link.path && router.push(link.path as never)}
             />
           ))}

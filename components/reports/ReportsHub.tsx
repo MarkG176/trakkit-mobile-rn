@@ -58,7 +58,8 @@ function CardTitle({
 
 const TILE_SIZE = 56;
 const GRID_COLS = 3;
-const TILE_ROW_GAP = spacing.lg;
+const TILE_ROW_GAP = spacing.xl;
+const TILE_COL_GAP = spacing.lg;
 
 function chunkTiles<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];
@@ -151,7 +152,11 @@ export function StockReportsLauncher({
         {rows.map((row) => (
           <View
             key={row.map((t) => t.key).join('-')}
-            style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: TILE_COL_GAP,
+            }}
           >
             {row.map((tile) => (
               <ReportSquareTile

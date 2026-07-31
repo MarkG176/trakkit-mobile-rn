@@ -102,7 +102,7 @@ export default function ReportsScreen() {
     if (!showMorningAvailability) return null;
     return {
       key: 'morning',
-      title: 'Morning Report',
+      title: 'Stock Report',
       icon: 'sunny-outline',
       primary: true,
       onPress: () => setAvailabilityDialog('morning'),
