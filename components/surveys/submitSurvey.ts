@@ -25,6 +25,8 @@ export type SubmitSurveyArgs = {
   responses: SurveyResponsesMap;
   startedAt: string;
   points?: number;
+  storeId?: string | null;
+  storeName?: string | null;
 };
 
 export async function submitSurveyResponse(
@@ -58,8 +60,8 @@ export async function submitSurveyResponse(
     audioUrl: '',
     points: String(args.points ?? 20),
     taskId: '',
-    storeId: '',
-    storeName: '',
+    storeId: args.storeId ?? '',
+    storeName: args.storeName ?? '',
   };
 
   const net = await NetInfo.fetch();
@@ -87,9 +89,11 @@ export async function submitSurveyResponse(
       survey_template_id: args.surveyTemplateId,
       latitude: locationLat,
       longitude: locationLng,
+      ...(args.storeId ? { store_id: args.storeId } : {}),
       metadata: {
         survey_template_id: args.surveyTemplateId,
         survey_name: args.surveyName,
+        ...(args.storeName ? { store_name: args.storeName } : {}),
       },
     },
   );

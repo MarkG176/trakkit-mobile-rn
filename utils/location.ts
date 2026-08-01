@@ -30,3 +30,29 @@ export async function getCurrentLocation(): Promise<CurrentLocation> {
     longitude: position.coords.longitude,
   };
 }
+
+export interface ReverseGeocodeResult {
+  county: string;
+  country: string;
+}
+
+/** Map GPS coords to county (admin area) and country via Expo reverse geocode. */
+export async function reverseGeocodeCountyCountry(
+  latitude: number,
+  longitude: number,
+): Promise<ReverseGeocodeResult> {
+  const results = await Location.reverseGeocodeAsync({ latitude, longitude });
+  const place = results[0];
+  if (!place) {
+    throw new Error('Could not determine county or country from location');
+  }
+
+  const county = (place.region || place.subregion || place.city || '').trim();
+  const country = (place.country || place.isoCountryCode || '').trim();
+
+  if (!county || !country) {
+    throw new Error('Could not determine county or country from location');
+  }
+
+  return { county, country };
+}

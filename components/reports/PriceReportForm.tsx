@@ -28,9 +28,10 @@ const SWIPE_THRESHOLD = 48;
 
 type PriceReportFormProps = {
   stockLevels?: Record<string, StockLevelValue>;
+  storeId?: string | null;
 };
 
-export function PriceReportForm({ stockLevels = {} }: PriceReportFormProps) {
+export function PriceReportForm({ stockLevels = {}, storeId }: PriceReportFormProps) {
   const { user } = useAuth();
   const { width: screenW } = useWindowDimensions();
   const { skus, loading: skusLoading } = useReportSkus();
@@ -120,6 +121,7 @@ export function PriceReportForm({ stockLevels = {} }: PriceReportFormProps) {
           price,
           sku: sku.sku ?? sku.name,
           stock_level: stockLevels[sku.productVariantId] ?? null,
+          ...(storeId ? { store_id: storeId } : {}),
         };
       })
       .filter(Boolean) as Record<string, unknown>[];

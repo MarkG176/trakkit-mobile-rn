@@ -33,6 +33,7 @@ export type StockReportDialogProps = {
   title?: string;
   subtitle?: string;
   requireAll?: boolean;
+  storeId?: string | null;
   onComplete?: (levels: Record<string, StockLevelValue>) => void;
 };
 
@@ -123,6 +124,7 @@ export function StockReportDialog({
   title,
   subtitle,
   requireAll = reportType === 'morning',
+  storeId,
   onComplete,
 }: StockReportDialogProps) {
   const { user } = useAuth();
@@ -242,6 +244,7 @@ export function StockReportDialog({
             work_date: workDate,
             quantity_sold: quantitySold,
             reported_at: new Date().toISOString(),
+            ...(storeId ? { store_id: storeId } : {}),
           };
         })
         .filter(Boolean) as Record<string, unknown>[];
@@ -285,6 +288,7 @@ export function StockReportDialog({
           work_date: workDate,
           stock_level: stockLevel,
           reported_at: new Date().toISOString(),
+          ...(storeId ? { store_id: storeId } : {}),
         };
       })
       .filter(Boolean) as Record<string, unknown>[];

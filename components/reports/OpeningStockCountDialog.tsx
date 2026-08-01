@@ -23,6 +23,7 @@ export type OpeningStockCountDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stockLevels: Record<string, StockLevelValue>;
+  storeId?: string | null;
   onComplete?: () => void;
 };
 
@@ -30,6 +31,7 @@ export function OpeningStockCountDialog({
   open,
   onOpenChange,
   stockLevels,
+  storeId,
   onComplete,
 }: OpeningStockCountDialogProps) {
   const { user } = useAuth();
@@ -68,6 +70,7 @@ export function OpeningStockCountDialog({
           quantity_sold: 0,
           closing_stock: 0,
           reported_at: new Date().toISOString(),
+          ...(storeId ? { store_id: storeId } : {}),
         };
       })
       .filter(Boolean) as Record<string, unknown>[];

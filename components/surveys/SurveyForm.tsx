@@ -14,6 +14,8 @@ import type { SurveyResponsesMap, SurveyTemplateSummary } from './types';
 type SurveyFormProps = {
   template: SurveyTemplateSummary;
   workspaceId: string;
+  storeId?: string | null;
+  storeName?: string | null;
   onCancel: () => void;
   onSubmitted?: () => void;
 };
@@ -21,6 +23,8 @@ type SurveyFormProps = {
 export function SurveyForm({
   template,
   workspaceId,
+  storeId,
+  storeName,
   onCancel,
   onSubmitted,
 }: SurveyFormProps) {
@@ -52,6 +56,8 @@ export function SurveyForm({
         surveyName: template.title,
         responses,
         startedAt,
+        storeId,
+        storeName,
       });
       Alert.alert(synced ? 'Survey submitted' : 'Saved offline');
       onSubmitted?.();

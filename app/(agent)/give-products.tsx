@@ -16,11 +16,13 @@ import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { useInventory, type InventoryItem } from '@/hooks/useInventory';
+import { storeIdPayload, useStoreRouteParams } from '@/hooks/useStoreRouteParams';
 import { Screen, Button, AppText } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function GiveProductsScreen() {
   const { user } = useAuth();
+  const { storeId, storeName } = useStoreRouteParams();
   const { inventory, loading: inventoryLoading } = useInventory();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cart, setCart] = useState<GiveawayLine[]>([]);
@@ -77,6 +79,7 @@ export default function GiveProductsScreen() {
         location_lat: lat,
         location_lng: lon,
         recorded_at: new Date().toISOString(),
+        ...storeIdPayload(storeId),
       });
 
       const { synced } = await writeWithOfflineQueue('giveaways', payload);
@@ -113,7 +116,9 @@ export default function GiveProductsScreen() {
             showsVerticalScrollIndicator={false}
           >
             <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
-              Build the giveaway list, then complete for this visit.
+              {storeName
+                ? `Build the giveaway list for ${storeName}.`
+                : 'Build the giveaway list, then complete for this visit.'}
             </AppText>
 
             <GiveawayCartSection

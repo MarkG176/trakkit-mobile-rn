@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
+import { useStoreRouteParams } from '@/hooks/useStoreRouteParams';
 import {
   Screen,
   Button,
@@ -22,6 +23,7 @@ import {
 
 export default function SurveysScreen() {
   const { currentWorkspaceId } = useWorkspace();
+  const { storeId, storeName } = useStoreRouteParams();
   const [templates, setTemplates] = useState<SurveyTemplateSummary[]>([]);
   const [active, setActive] = useState<SurveyTemplateSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +85,8 @@ export default function SurveysScreen() {
           <SurveyForm
             template={active}
             workspaceId={currentWorkspaceId}
+            storeId={storeId}
+            storeName={storeName}
             onCancel={() => setActive(null)}
             onSubmitted={() => setActive(null)}
           />

@@ -8,11 +8,13 @@ import { useInteractionAudio } from '@/hooks/useInteractionAudio';
 import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
+import { storeIdPayload, useStoreRouteParams } from '@/hooks/useStoreRouteParams';
 import { Screen, Button, Card, AppText } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function LogInteractionScreen() {
   const { user } = useAuth();
+  const { storeId } = useStoreRouteParams();
   const [notes, setNotes] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -56,6 +58,7 @@ export default function LogInteractionScreen() {
           sentiment,
           recording_url: recordingUrl || undefined,
         },
+        ...storeIdPayload(storeId),
       });
 
       const { synced } = await writeWithOfflineQueue('interactions', payload);

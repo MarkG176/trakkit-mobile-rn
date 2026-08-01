@@ -20,11 +20,13 @@ import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { formatCurrencySimple } from '@/utils/currency';
 import { useInventory, type InventoryItem } from '@/hooks/useInventory';
+import { storeIdPayload, useStoreRouteParams } from '@/hooks/useStoreRouteParams';
 import { Screen, Button, AppText } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function RecordSaleScreen() {
   const { user } = useAuth();
+  const { storeId, storeName } = useStoreRouteParams();
   const { inventory, loading: inventoryLoading } = useInventory();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cart, setCart] = useState<SaleLine[]>([]);
@@ -78,6 +80,7 @@ export default function RecordSaleScreen() {
           total_price: getLineTotal(line),
           customer_name: customerName || null,
           customer_phone: customerPhone || null,
+          ...storeIdPayload(storeId),
         });
 
         const { synced } = await writeWithOfflineQueue('sale_items', payload);
@@ -116,7 +119,9 @@ export default function RecordSaleScreen() {
             showsVerticalScrollIndicator={false}
           >
             <AppText variant="secondary" style={{ marginBottom: spacing.lg }}>
-              Build the cart, then complete the sale for this visit.
+              {storeName
+                ? `Build the cart for ${storeName}, then complete the sale.`
+                : 'Build the cart, then complete the sale for this visit.'}
             </AppText>
 
             <SaleCartSection
