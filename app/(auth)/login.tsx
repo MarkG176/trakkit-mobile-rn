@@ -7,20 +7,23 @@ import {
   Platform,
   ScrollView,
   Image,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppText, Button, Card, IconChip, appAlert } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { colors, hitSlop, radius, spacing } from '@/theme';
 
 const OTP_LEN = 6;
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { signInWithOtp, signInWithGoogle, verifyOtp } = useAuth();
+  const { signInWithPassword, signInWithOtp, signInWithGoogle, verifyOtp } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,6 +40,38 @@ export default function LoginScreen() {
     }
   };
 
+  const ensureAccountExists = async () => {
+    const { data: emailExists, error: checkError } = await supabase.rpc('check_email_exists', {
+      p_email: email.trim(),
+    });
+    if (checkError || !emailExists) {
+      Alert.alert('Account not found', 'Please contact your administrator.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignIn = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email required', 'Please enter your email address.');
+      return;
+    }
+    if (!password) {
+      Alert.alert('Password required', 'Please enter your password.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (!(await ensureAccountExists())) return;
+
+      const { error } = await signInWithPassword(email.trim(), password);
+      if (error) Alert.alert('Sign in failed', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendOtp = async () => {
     if (!email.trim()) {
       Alert.alert('Email required', 'Please enter your email address.');
@@ -45,14 +80,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const { data: emailExists, error: checkError } = await supabase.rpc('check_email_exists', {
-        p_email: email.trim(),
-      });
-
-      if (checkError || !emailExists) {
-        Alert.alert('Account not found', 'Please contact your administrator.');
-        return;
-      }
+      if (!(await ensureAccountExists())) return;
 
       const { error } = await signInWithOtp(email.trim());
       if (error) {
@@ -162,22 +190,77 @@ export default function LoginScreen() {
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoComplete="email"
+                    textContentType="emailAddress"
                     placeholder="name@company.com"
                     placeholderTextColor={colors.secondaryForeground}
                     style={{ flex: 1, fontSize: 16, color: colors.foreground, paddingVertical: spacing.sm }}
                   />
                 </View>
 
+                <AppText style={{ fontSize: 14, fontWeight: '600', marginBottom: spacing.xs }}>
+                  Password
+                </AppText>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: radius.md,
+                    backgroundColor: colors.muted,
+                    paddingHorizontal: spacing.md,
+                    minHeight: 48,
+                    marginBottom: spacing.md,
+                  }}
+                >
+                  <Ionicons name="lock-closed-outline" size={18} color={colors.secondaryForeground} />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoComplete="password"
+                    textContentType="password"
+                    placeholder="Enter your password"
+                    placeholderTextColor={colors.secondaryForeground}
+                    onSubmitEditing={() => void handleSignIn()}
+                    returnKeyType="go"
+                    style={{ flex: 1, fontSize: 16, color: colors.foreground, paddingVertical: spacing.sm }}
+                  />
+                  <Pressable
+                    onPress={() => setShowPassword((v) => !v)}
+                    hitSlop={hitSlop}
+                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={colors.secondaryForeground}
+                    />
+                  </Pressable>
+                </View>
+
                 <Button
-                  onPress={handleSendOtp}
+                  onPress={handleSignIn}
                   loading={loading}
                   disabled={googleLoading}
                   style={{ gap: spacing.sm }}
                 >
                   <AppText style={{ fontSize: 16, fontWeight: '500', color: colors.primaryForeground }}>
-                    Send verification code
+                    Sign in
                   </AppText>
                   <Ionicons name="arrow-forward" size={18} color={colors.primaryForeground} />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onPress={handleSendOtp}
+                  disabled={loading || googleLoading}
+                  style={{ marginTop: spacing.sm }}
+                >
+                  Email me a code instead
                 </Button>
 
                 <View
@@ -310,7 +393,7 @@ export default function LoginScreen() {
                     setOtp('');
                   }}
                 >
-                  Use different email
+                  Back to sign in
                 </Button>
 
                 <View
