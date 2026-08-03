@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { supabase } from '@/lib/supabase';
+import { presentSyncFailureNotification, SYNC_STALE_MS } from '@/services/localNotifications';
 
 const OUTBOX_KEY = 'trakkit_offline_outbox';
+const MAX_RETRIES_BEFORE_ALERT = 3;
 
 export interface OutboxItem {
   id: string;
@@ -18,6 +20,7 @@ class OfflineQueueService {
   private listeners = new Set<QueueListener>();
   private processing = false;
   private netUnsubscribe: (() => void) | null = null;
+  private lastSyncAlertAt = 0;
 
   constructor() {
     this.netUnsubscribe = NetInfo.addEventListener((state) => {
@@ -82,12 +85,30 @@ class OfflineQueueService {
     }
   }
 
+  private async maybeAlertSyncFailure(queue: OutboxItem[]): Promise<void> {
+    if (queue.length === 0) return;
+
+    const now = Date.now();
+    if (now - this.lastSyncAlertAt < 30 * 60 * 1000) return;
+
+    const hasHardFailure = queue.some((item) => item.retries >= MAX_RETRIES_BEFORE_ALERT);
+    const hasStale = queue.some(
+      (item) => now - new Date(item.createdAt).getTime() >= SYNC_STALE_MS,
+    );
+    if (!hasHardFailure && !hasStale) return;
+
+    this.lastSyncAlertAt = now;
+    await presentSyncFailureNotification(queue.length).catch((err) => {
+      console.warn('[offlineQueue] sync failure notification failed', err);
+    });
+  }
+
   async processQueue(): Promise<void> {
     if (this.processing) return;
     this.processing = true;
 
     try {
-      let queue = await this.getQueue();
+      const queue = await this.getQueue();
       const remaining: OutboxItem[] = [];
 
       for (const item of queue) {
@@ -98,6 +119,7 @@ class OfflineQueueService {
       }
 
       await this.saveQueue(remaining);
+      await this.maybeAlertSyncFailure(remaining);
     } finally {
       this.processing = false;
     }

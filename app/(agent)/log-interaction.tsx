@@ -9,7 +9,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { storeIdPayload, useStoreRouteParams } from '@/hooks/useStoreRouteParams';
-import { Screen, Button, Card, AppText } from '@/components/ui';
+import { Screen, Button, Card, AppText, appAlert } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function LogInteractionScreen() {
@@ -62,7 +62,7 @@ export default function LogInteractionScreen() {
       });
 
       const { synced } = await writeWithOfflineQueue('interactions', payload);
-      Alert.alert(
+      appAlert(
         synced ? 'Interaction logged' : 'Saved offline',
         synced ? 'Interaction saved successfully.' : 'Will sync when connected.',
       );

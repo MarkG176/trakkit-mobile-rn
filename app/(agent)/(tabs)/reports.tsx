@@ -34,10 +34,10 @@ type AvailabilityDialog = 'morning' | 'evening' | null;
 
 function pickEveningCode(
   isEnabled: (code: string) => boolean,
-  teamType: string,
+  projectType: string,
   inStore: boolean,
 ): EveningCode | null {
-  if (teamType.includes('survey') && isEnabled('CRM-0023')) return 'CRM-0023';
+  if (projectType.includes('survey') && isEnabled('CRM-0023')) return 'CRM-0023';
   if (inStore && isEnabled('CRM-0020')) return 'CRM-0020';
   if (isEnabled('CRM-0019')) return 'CRM-0019';
   if (isEnabled('CRM-0020')) return 'CRM-0020';
@@ -74,15 +74,16 @@ export default function ReportsScreen() {
   const [countOpen, setCountOpen] = useState(false);
   const [stockLevels, setStockLevels] = useState<Record<string, StockLevelValue>>({});
 
-  const teamType = currentWorkspaceLabel?.toLowerCase() ?? '';
-  const inStore = teamType.includes('instore') || workspaceService.isCurrentWorkspaceInStoreMode();
+  const projectType = currentWorkspaceLabel?.toLowerCase() ?? '';
+  const inStore =
+    projectType.includes('instore') || workspaceService.isCurrentWorkspaceInStoreMode();
 
   /** Web: CRM-0022 ≈ availability; CRM-0021 ≈ morning count (chain after availability when in-store). */
   const showMorningAvailability = isEnabled('CRM-0022') || isEnabled('CRM-0021');
   const showMorningCount = isEnabled('CRM-0021') && inStore;
   const eveningCode = useMemo(
-    () => pickEveningCode(isEnabled, teamType, inStore),
-    [isEnabled, teamType, inStore],
+    () => pickEveningCode(isEnabled, projectType, inStore),
+    [isEnabled, projectType, inStore],
   );
   const showEvening = eveningCode != null;
   const showPrice = isEnabled('CRM-0025');

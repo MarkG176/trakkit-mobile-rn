@@ -16,7 +16,6 @@ const LINKS: {
 }[] = [
   { code: 'CRM-0090', label: 'Profile', path: '/(agent)/profile', icon: 'person-outline' },
   { code: 'CRM-0091', label: 'Activity', path: '/(agent)/activity', icon: 'pulse-outline' },
-  { code: 'CRM-0097', label: 'Surveys', path: '/(agent)/surveys', icon: 'clipboard-outline' },
   { code: 'CRM-0110', label: 'Chat', path: '/(agent)/support-ticket', icon: 'chatbubble-outline' },
   { code: 'CRM-0099', label: 'Reports', path: '/(agent)/reports', icon: 'bar-chart-outline' },
   {
@@ -39,7 +38,8 @@ const LINKS: {
     icon: 'clipboard-outline',
   },
   { code: 'CRM-0109', label: 'Help & Support', path: '/(agent)/help-support', icon: 'help-circle-outline' },
-  { code: 'CRM-0111', label: 'Manage Agents', path: '/(agent)/manage-agents', icon: 'people-outline' },
+  { code: 'CRM-0100', label: 'Documentation', path: '/(agent)/documentation', icon: 'book-outline' },
+  { code: 'CRM-0030', label: 'Engagement', path: '/(agent)/engagement', icon: 'flash-outline' },
   { code: 'CRM-0101', label: 'Settings', path: '/(agent)/settings', icon: 'settings-outline' },
 ];
 

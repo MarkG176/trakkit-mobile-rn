@@ -36,6 +36,14 @@ export default function AgentTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="surveys"
+        options={{
+          title: 'Surveys',
+          href: show('CRM-0097') ? undefined : null,
+          tabBarIcon: tabBarIcon('document-text'),
+        }}
+      />
+      <Tabs.Screen
         name="inventory"
         options={{
           title: 'Inventory',

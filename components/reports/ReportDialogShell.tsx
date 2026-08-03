@@ -1,17 +1,21 @@
 /**
  * Centered modal dialog shell for report forms.
- * Single Modal layer — children must not open nested Modals (use inline expanders).
+ * Stock-level select menus may use a nested transparent Modal so they paint
+ * above the footer; prefer that over inline absolute menus that sit under Submit.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, IconChip } from '@/components/ui';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { colors, hitSlop, radius, spacing } from '@/theme';
 import type { IoniconName } from '@/components/navigation/TabIcon';
 
@@ -41,6 +45,7 @@ export function ReportDialogShell({
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const panelAnim = useRef(new Animated.Value(0)).current;
   const closingRef = useRef(false);
+  const keyboardHeight = useKeyboardHeight(mounted);
 
   useEffect(() => {
     if (open) {
@@ -98,6 +103,7 @@ export function ReportDialogShell({
   if (!mounted) return null;
 
   const maxPanelH = Math.min(windowH * 0.9, 640);
+  const androidLift = Platform.OS === 'android' ? keyboardHeight : 0;
 
   return (
     <Modal
@@ -107,7 +113,10 @@ export function ReportDialogShell({
       statusBarTranslucent
       onRequestClose={close}
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Animated.View
           pointerEvents="none"
           style={{
@@ -132,6 +141,7 @@ export function ReportDialogShell({
             width: '92%',
             maxWidth: 448,
             maxHeight: maxPanelH,
+            marginBottom: androidLift > 0 ? androidLift * 0.5 : 0,
             opacity: panelAnim,
             transform: [{ scale: panelScale }, { translateY: panelTranslateY }],
             zIndex: 1,
@@ -215,7 +225,7 @@ export function ReportDialogShell({
             ) : null}
           </View>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

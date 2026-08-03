@@ -28,7 +28,7 @@ export default function SupervisorLayout() {
       </View>
     );
   }
-  if (!isSupervisor) return <Redirect href="/(agent)" />;
+  if (!isSupervisor) return <Redirect href={"/(agent)" as never} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -44,10 +44,12 @@ export default function SupervisorLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="teams" />
           <Stack.Screen name="sales" />
           <Stack.Screen name="gallery" />
           <Stack.Screen name="rankings" />
           <Stack.Screen name="feedback" />
+          <Stack.Screen name="giveaways" />
         </Stack>
       </ContentBetweenChrome>
     </View>

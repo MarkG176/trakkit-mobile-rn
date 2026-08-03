@@ -97,7 +97,7 @@ export default function SurveysScreen() {
 
   return (
     <ComponentGate code="CRM-0097" redirectTo="/(agent)">
-      <Screen scroll showBack>
+      <Screen scroll>
         <AppText variant="secondary" style={{ marginBottom: spacing.md }}>
           Complete assigned market surveys
         </AppText>

@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@/components/forms/FormField';
-import { AppText, LoadingSpinner } from '@/components/ui';
+import { AppText, LoadingSpinner, appAlert } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { supabase } from '@/lib/supabase';
@@ -277,7 +277,7 @@ export function parsePrice(value: string): number | null {
 }
 
 export function reportAlert(synced: boolean) {
-  Alert.alert(synced ? 'Report submitted' : 'Saved offline');
+  void appAlert(synced ? 'Report submitted' : 'Saved offline');
 }
 
 export async function submitNoteRow(

@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
-import { AppText, Button, Card, IconChip } from '@/components/ui';
+import { AppText, Button, Card, IconChip, appAlert } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 
 const OTP_LEN = 6;
@@ -294,7 +294,7 @@ export default function LoginScreen() {
                     try {
                       const { error } = await signInWithOtp(email.trim());
                       if (error) Alert.alert('Resend failed', error.message);
-                      else Alert.alert('Code sent', 'Check your email for a new code.');
+                      else appAlert('Code sent', 'Check your email for a new code.');
                     } finally {
                       setLoading(false);
                     }

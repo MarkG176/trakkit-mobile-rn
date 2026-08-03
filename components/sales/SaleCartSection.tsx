@@ -11,7 +11,7 @@ type SaleCartSectionProps = {
   currency: string;
   onAddProducts: () => void;
   onUpdateQuantity: (productVariantId: string, quantity: number) => void;
-  onUpdatePrice: (productVariantId: string, unitPrice: number) => void;
+  onUpdatePrice?: (productVariantId: string, unitPrice: number) => void;
   onRemove: (productVariantId: string) => void;
 };
 
@@ -99,13 +99,15 @@ function CartLineRow({
   line: SaleLine;
   currency: string;
   onUpdateQuantity: (productVariantId: string, quantity: number) => void;
-  onUpdatePrice: (productVariantId: string, unitPrice: number) => void;
+  onUpdatePrice?: (productVariantId: string, unitPrice: number) => void;
   onRemove: (productVariantId: string) => void;
 }) {
   const [editingPrice, setEditingPrice] = useState(false);
   const [priceDraft, setPriceDraft] = useState(String(line.unitPrice));
+  const canEditPrice = Boolean(onUpdatePrice);
 
   const commitPrice = () => {
+    if (!onUpdatePrice) return;
     const parsed = parseFloat(priceDraft);
     onUpdatePrice(line.product_variant_id, Number.isFinite(parsed) ? parsed : line.unitPrice);
     setEditingPrice(false);
@@ -139,7 +141,7 @@ function CartLineRow({
           <AppText style={{ fontWeight: '600' }} numberOfLines={2}>
             {line.name}
           </AppText>
-          {editingPrice ? (
+          {editingPrice && canEditPrice ? (
             <View
               style={{
                 flexDirection: 'row',
@@ -173,10 +175,15 @@ function CartLineRow({
             </View>
           ) : (
             <Pressable
-              onPress={() => {
-                setPriceDraft(String(line.unitPrice));
-                setEditingPrice(true);
-              }}
+              onPress={
+                canEditPrice
+                  ? () => {
+                      setPriceDraft(String(line.unitPrice));
+                      setEditingPrice(true);
+                    }
+                  : undefined
+              }
+              disabled={!canEditPrice}
               hitSlop={hitSlop}
               style={{
                 flexDirection: 'row',
@@ -184,7 +191,7 @@ function CartLineRow({
                 gap: spacing.xs,
                 marginTop: 2,
                 alignSelf: 'flex-start',
-                minHeight: 44,
+                minHeight: canEditPrice ? 44 : undefined,
               }}
             >
               <View style={{ flexDirection: 'column', gap: 2 }}>
@@ -192,7 +199,9 @@ function CartLineRow({
                   <AppText variant="secondary" style={{ fontSize: 14 }}>
                     {formatCurrencySimple(line.unitPrice, currency)}
                   </AppText>
-                  <Ionicons name="pencil" size={14} color={colors.secondaryForeground} />
+                  {canEditPrice ? (
+                    <Ionicons name="pencil" size={14} color={colors.secondaryForeground} />
+                  ) : null}
                 </View>
                 {hasDeal(line) ? (
                   <AppText style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>

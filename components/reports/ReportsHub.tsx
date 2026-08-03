@@ -10,6 +10,7 @@ import {
   Card,
   IconChip,
   ProgressBar,
+  appAlert,
 } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { colors, hitSlop, radius, spacing } from '@/theme';
@@ -330,7 +331,7 @@ export function ReportsImagesCard() {
       );
 
       if (uploaded === total) {
-        Alert.alert(
+        appAlert(
           'Photo uploaded',
           lat != null && lng != null
             ? `Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`

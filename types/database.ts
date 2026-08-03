@@ -1353,6 +1353,36 @@ export type Database = {
         }
         Relationships: []
       }
+      device_push_tokens: {
+        Row: {
+          agent_id: string
+          created_at: string
+          device_info: Json | null
+          expo_push_token: string
+          id: string
+          platform: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          device_info?: Json | null
+          expo_push_token: string
+          id?: string
+          platform: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          device_info?: Json | null
+          expo_push_token?: string
+          id?: string
+          platform?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       giveaways: {
         Row: {
           agent_id: string
@@ -1894,6 +1924,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          data: Json
+          id: string
+          is_read: boolean
+          read_at: string | null
+          recipient_id: string
+          title: string
+          type: string
+          workspace_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          data?: Json
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          recipient_id: string
+          title: string
+          type: string
+          workspace_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+          type?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notes: {
         Row: {

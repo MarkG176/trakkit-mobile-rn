@@ -17,7 +17,8 @@ import { getCurrentLocation } from '@/utils/location';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
 import { getLastCheckInPhotoUrl, uploadCheckInPhoto } from '@/utils/agentPhotos';
-import { AppText, Button, Card } from '@/components/ui';
+import { supabase } from '@/lib/supabase';
+import { AppText, Button, Card, appAlert } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 
 function StatusBadge({ isCheckedIn }: { isCheckedIn: boolean }) {
@@ -112,6 +113,26 @@ export function RecordAttendanceForm() {
       const location = await getCurrentLocation();
       const uploaded = await uploadCheckInPhoto(pendingUri, user.id);
 
+      let displayName: string | null =
+        (typeof user.user_metadata?.display_name === 'string'
+          ? user.user_metadata.display_name
+          : null) ||
+        user.email?.split('@')[0] ||
+        null;
+
+      const { data: workspaceRow } = await supabase
+        .from('user_workspaces')
+        .select('name, email')
+        .eq('user_id', user.id)
+        .eq('workspace_id', currentWorkspaceId)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (workspaceRow?.name) displayName = workspaceRow.name;
+      else if (!displayName && workspaceRow?.email) {
+        displayName = workspaceRow.email.split('@')[0] || null;
+      }
+
       const payload = {
         agent_id: user.id,
         workspace_id: currentWorkspaceId,
@@ -120,15 +141,16 @@ export function RecordAttendanceForm() {
         location_lng: location.longitude,
         selfie_url: uploaded,
         timestamp: new Date().toISOString(),
+        agent_display_name: displayName,
       };
 
       const { synced } = await writeWithOfflineQueue('agent_status_log', payload);
       const wasCheckIn = pendingStatus === 'checked_in';
 
       if (!synced) {
-        Alert.alert('Saved offline', 'Check-in will sync when you reconnect.');
+        appAlert('Saved offline', 'Check-in will sync when you reconnect.');
       } else {
-        Alert.alert('Success', wasCheckIn ? 'Checked in!' : 'Checked out!');
+        appAlert('Success', wasCheckIn ? 'Checked in!' : 'Checked out!');
       }
 
       if (wasCheckIn) {

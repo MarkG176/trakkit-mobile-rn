@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import { ComponentGate } from '@/components/ComponentGate';
 import { SetAssignedLocationCard } from '@/components/stores/SetAssignedLocationCard';
 import { AddStoreCard } from '@/components/stores/AddStoreCard';
@@ -8,7 +7,7 @@ import {
   type AddedStoreInfo,
 } from '@/components/stores/StoreSuccessSheet';
 import { StockReportDialog } from '@/components/reports/StockReportDialog';
-import { Screen, EmptyMessage } from '@/components/ui';
+import { Screen, EmptyMessage, appAlert } from '@/components/ui';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
 import { useWorkspaceStores } from '@/hooks/useWorkspaceStores';
 import type { StockLevelValue } from '@/components/reports/shared';
@@ -34,7 +33,7 @@ export default function RoutesScreen() {
     if (showSuccessHub) {
       setSuccessOpen(true);
     } else {
-      Alert.alert('Store added', `${store.name} was added successfully.`);
+      appAlert('Store added', `${store.name} was added successfully.`);
     }
   };
 

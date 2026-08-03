@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -44,6 +45,7 @@ function actionMeta(action: string): {
 export default function ActivityScreen() {
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
+  const router = useRouter();
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>('all');
@@ -137,34 +139,45 @@ export default function ActivityScreen() {
           filtered.map((item) => {
             const meta = actionMeta(item.action);
             return (
-              <Card key={item.id} style={{ marginBottom: spacing.sm }}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
-                  <IconChip
-                    name={meta.icon}
-                    backgroundColor={colors.muted}
-                    color={colors.primary}
-                  />
-                  <View style={{ flex: 1, flexShrink: 1, minWidth: 0 }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: spacing.sm,
-                        marginBottom: spacing.xs,
-                      }}
-                    >
-                      <Badge variant={meta.tone}>{meta.label}</Badge>
-                      <AppText variant="secondary" style={{ fontSize: 12 }}>
-                        {relativeTime(item.created_at)}
+              <Pressable
+                key={item.id}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(agent)/activity-detail',
+                    params: { id: item.id, type: 'activity' },
+                  })
+                }
+                hitSlop={hitSlop}
+              >
+                <Card style={{ marginBottom: spacing.sm }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
+                    <IconChip
+                      name={meta.icon}
+                      backgroundColor={colors.muted}
+                      color={colors.primary}
+                    />
+                    <View style={{ flex: 1, flexShrink: 1, minWidth: 0 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: spacing.sm,
+                          marginBottom: spacing.xs,
+                        }}
+                      >
+                        <Badge variant={meta.tone}>{meta.label}</Badge>
+                        <AppText variant="secondary" style={{ fontSize: 12 }}>
+                          {relativeTime(item.created_at)}
+                        </AppText>
+                      </View>
+                      <AppText style={{ fontWeight: '600', fontSize: 16, flexShrink: 1 }}>
+                        {item.action.replace(/_/g, ' ')}
                       </AppText>
                     </View>
-                    <AppText style={{ fontWeight: '600', fontSize: 16, flexShrink: 1 }}>
-                      {item.action.replace(/_/g, ' ')}
-                    </AppText>
                   </View>
-                </View>
-              </Card>
+                </Card>
+              </Pressable>
             );
           })
         )}

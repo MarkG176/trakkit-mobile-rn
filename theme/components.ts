@@ -73,11 +73,12 @@ export const card = {
     borderColor: '#EBF0F2',
     borderRadius: radius.lg,
     padding: 20,
+    overflow: 'hidden' as const,
     shadowColor: '#000000',
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   } satisfies ViewStyle,
 };
 

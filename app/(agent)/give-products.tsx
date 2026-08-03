@@ -17,7 +17,7 @@ import { workspaceService } from '@/services/workspaceService';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
 import { useInventory, type InventoryItem } from '@/hooks/useInventory';
 import { storeIdPayload, useStoreRouteParams } from '@/hooks/useStoreRouteParams';
-import { Screen, Button, AppText } from '@/components/ui';
+import { Screen, Button, AppText, appAlert } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 
 export default function GiveProductsScreen() {
@@ -83,7 +83,7 @@ export default function GiveProductsScreen() {
       });
 
       const { synced } = await writeWithOfflineQueue('giveaways', payload);
-      Alert.alert(
+      appAlert(
         synced ? 'Giveaway recorded' : 'Saved offline',
         synced
           ? items === 1

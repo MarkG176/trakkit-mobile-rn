@@ -2,6 +2,7 @@ import { ScrollView, View } from 'react-native';
 import { RecordAttendanceForm } from '@/components/attendance/RecordAttendanceForm';
 import { WorkHoursCard } from '@/components/dashboard/WorkHoursCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { UpcomingScheduleCard } from '@/components/dashboard/UpcomingScheduleCard';
 import { ExpectedActivitiesCard } from '@/components/dashboard/ExpectedActivitiesCard';
 import { DashboardMessagesCard } from '@/components/dashboard/DashboardMessagesCard';
 import { ComponentGate } from '@/components/ComponentGate';
@@ -38,6 +39,7 @@ export default function AgentDashboard() {
         >
           {showAttendance ? <RecordAttendanceForm /> : null}
           <QuickActions />
+          <UpcomingScheduleCard />
           <WorkHoursCard logs={statusLogs} loading={loading} />
           <ExpectedActivitiesCard
             activities={activities}

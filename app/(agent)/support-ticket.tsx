@@ -19,6 +19,8 @@ import {
   EmptyMessage,
 } from '@/components/ui';
 import { colors, hitSlop, radius, spacing } from '@/theme';
+import { NOTIFICATION_TYPES } from '@/constants/notifications';
+import { markNotificationsRead } from '@/hooks/useUnreadNotifications';
 
 type TicketType = 'bug_support' | 'inventory_request' | 'missing_stats';
 type InventoryIssueType = 'missing_inventory' | 'incorrect_inventory_details';
@@ -157,6 +159,14 @@ export default function SupportTicketScreen() {
         .update({ is_read: true })
         .eq('workspace_id', currentWorkspaceId)
         .in('id', unread);
+    }
+
+    if (user) {
+      await markNotificationsRead({
+        userId: user.id,
+        types: [NOTIFICATION_TYPES.newMessage],
+        workspaceId: currentWorkspaceId,
+      });
     }
   }, [user, currentWorkspaceId]);
 

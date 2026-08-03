@@ -9,7 +9,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@/components/forms/FormField';
-import { AppText, Button } from '@/components/ui';
+import { AppText, Button, appAlert } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
@@ -108,7 +108,7 @@ export function CollectFeedbackForm({
         });
       }
 
-      Alert.alert(
+      appAlert(
         'Feedback submitted',
         `Feedback${uris.length > 0 ? ` and ${uris.length} photo(s)` : ''} recorded for ${storeName}.`,
       );

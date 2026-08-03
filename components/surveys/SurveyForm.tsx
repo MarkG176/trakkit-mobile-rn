@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AppText, Button, ProgressBar } from '@/components/ui';
+import { AppText, Button, ProgressBar, appAlert } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { colors, spacing } from '@/theme';
 import { SurveyQuestionCard } from './SurveyQuestionCard';
@@ -59,7 +59,7 @@ export function SurveyForm({
         storeId,
         storeName,
       });
-      Alert.alert(synced ? 'Survey submitted' : 'Saved offline');
+      appAlert(synced ? 'Survey submitted' : 'Saved offline');
       onSubmitted?.();
       router.replace('/(agent)');
     } catch (e) {

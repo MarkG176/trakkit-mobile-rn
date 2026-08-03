@@ -50,14 +50,16 @@ const EMPTY_COUNTS: ActivityCounts = {
 
 const ATTENDANCE_ACTIVITY_CODES = new Set(['CRM-0010', 'CRM-0026']);
 
-const REPORT_VISIBILITY: Record<string, (teamType: string, inStore: boolean) => boolean> = {
-  'CRM-0019': (teamType) =>
-    !teamType.includes('instore') && !teamType.includes('seeding') && !teamType.includes('survey'),
-  'CRM-0020': (teamType, inStore) => teamType.includes('instore') || inStore,
-  'CRM-0021': (teamType, inStore) => teamType.includes('instore') || inStore,
+const REPORT_VISIBILITY: Record<string, (projectType: string, inStore: boolean) => boolean> = {
+  'CRM-0019': (projectType) =>
+    !projectType.includes('instore') &&
+    !projectType.includes('seeding') &&
+    !projectType.includes('survey'),
+  'CRM-0020': (projectType, inStore) => projectType.includes('instore') || inStore,
+  'CRM-0021': (projectType, inStore) => projectType.includes('instore') || inStore,
   'CRM-0022': () => true,
-  'CRM-0023': (teamType) => teamType.includes('survey'),
-  'CRM-0024': (teamType) => teamType.includes('seeding'),
+  'CRM-0023': (projectType) => projectType.includes('survey'),
+  'CRM-0024': (projectType) => projectType.includes('seeding'),
   'CRM-0025': () => true,
 };
 
@@ -66,7 +68,7 @@ const COMPLETION_BY_CODE: Record<string, (counts: ActivityCounts) => boolean> = 
   'CRM-0034G': (c) => c.giveaways > 0,
   'CRM-0097': (c) => c.surveys > 0,
   'CRM-0096': (c) => c.interactions > 0,
-  'CRM-0030': (c) => c.engagementGiveaways > 0,
+  'CRM-0030': (c) => c.engagementGiveaways > 0 || c.interactions > 0,
   'CRM-0019': (c) => c.dailyReports > 0,
   'CRM-0020': (c) => c.dailyReports > 0,
   'CRM-0021': (c) => c.dailyReports > 0,
@@ -76,9 +78,9 @@ const COMPLETION_BY_CODE: Record<string, (counts: ActivityCounts) => boolean> = 
   'CRM-0025': (c) => c.priceReports > 0,
 };
 
-function isActivityVisible(code: string, teamType: string, inStore: boolean): boolean {
+function isActivityVisible(code: string, projectType: string, inStore: boolean): boolean {
   const reportFilter = REPORT_VISIBILITY[code];
-  if (reportFilter) return reportFilter(teamType, inStore);
+  if (reportFilter) return reportFilter(projectType, inStore);
   return true;
 }
 
@@ -161,7 +163,7 @@ export function useAgentDashboardData() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const teamType = currentWorkspaceLabel?.toLowerCase() ?? '';
+  const projectType = currentWorkspaceLabel?.toLowerCase() ?? '';
   const inStore = workspaceService.isCurrentWorkspaceInStoreMode();
 
   const enabledActivities = useMemo(
@@ -170,9 +172,9 @@ export function useAgentDashboardData() {
         (component) =>
           component.group === 'agent-action' &&
           isEnabled(component.code) &&
-          isActivityVisible(component.code, teamType, inStore),
+          isActivityVisible(component.code, projectType, inStore),
       ),
-    [teamType, inStore, isEnabled],
+    [projectType, inStore, isEnabled],
   );
 
   const fetchAll = useCallback(async () => {

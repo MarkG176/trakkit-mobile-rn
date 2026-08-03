@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -8,6 +9,7 @@ import { Screen, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components
 export default function GiveawayActivitiesScreen() {
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
+  const router = useRouter();
   const [items, setItems] = useState<
     { id: string; recipient_name: string | null; created_at: string }[]
   >([]);
@@ -48,6 +50,12 @@ export default function GiveawayActivitiesScreen() {
               key={item.id}
               title={item.recipient_name ?? 'Giveaway'}
               subtitle={new Date(item.created_at).toLocaleString()}
+              onPress={() =>
+                router.push({
+                  pathname: '/(agent)/activity-detail',
+                  params: { id: item.id, type: 'giveaway' },
+                })
+              }
             />
           ))
         )}

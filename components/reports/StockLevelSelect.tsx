@@ -1,9 +1,16 @@
 /**
  * Stock-level product row — name + grey caret | large ≥40% tinted availability bar.
- * Status text on the same line as the product name; menu under the bar.
+ * Status text on the same line as the product name; menu opens in a transparent Modal
+ * so it always paints above the ReportDialogShell Submit footer and sibling rows.
  */
-import { memo, useCallback } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  View,
+  type LayoutRectangle,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/ui';
 import { colors, hitSlop, radius, spacing, typography } from '@/theme';
@@ -46,18 +53,48 @@ export const StockProductRow = memo(function StockProductRow({
   const displayName = name?.trim() || 'Product';
   const currentValue: StockLevelValue = value || 'available';
   const selected = STOCK_LEVEL_OPTIONS.find((o) => o.value === currentValue)!;
+  const barRef = useRef<View>(null);
+  const [menuAnchor, setMenuAnchor] = useState<LayoutRectangle | null>(null);
+
+  useEffect(() => {
+    if (!expanded) setMenuAnchor(null);
+  }, [expanded]);
+
+  const close = useCallback(() => {
+    onExpandedChange(null);
+    setMenuAnchor(null);
+  }, [onExpandedChange]);
+
+  const openMenu = useCallback(() => {
+    barRef.current?.measureInWindow((x, y, width, height) => {
+      setMenuAnchor({ x, y, width, height });
+      onExpandedChange(productVariantId);
+    });
+  }, [onExpandedChange, productVariantId]);
 
   const toggle = useCallback(() => {
-    onExpandedChange(expanded ? null : productVariantId);
-  }, [expanded, onExpandedChange, productVariantId]);
+    if (expanded) {
+      close();
+      return;
+    }
+    openMenu();
+  }, [close, expanded, openMenu]);
 
   const pick = useCallback(
     (next: StockLevelValue) => {
       onChange(productVariantId, next);
-      onExpandedChange(null);
+      close();
     },
-    [onChange, onExpandedChange, productVariantId],
+    [close, onChange, productVariantId],
   );
+
+  const menuWidth = menuAnchor ? Math.max(menuAnchor.width, 160) : 160;
+  const menuLeft = menuAnchor
+    ? menuAnchor.x + menuAnchor.width - menuWidth
+    : 0;
+  const menuTop = menuAnchor
+    ? menuAnchor.y + menuAnchor.height + spacing.xs
+    : 0;
 
   return (
     <View
@@ -66,16 +103,11 @@ export const StockProductRow = memo(function StockProductRow({
         borderBottomColor: colors.border,
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.xs,
-        zIndex: expanded ? 20 : 0,
-        elevation: expanded ? 8 : 0,
-        overflow: 'visible',
         backgroundColor: colors.card,
       }}
     >
       <View
         style={{
-          position: 'relative',
-          zIndex: expanded ? 20 : 1,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
@@ -129,58 +161,77 @@ export const StockProductRow = memo(function StockProductRow({
         </View>
 
         {/* Large tinted availability bar — status label only, ≥40% */}
-        <Pressable
-          onPress={toggle}
-          hitSlop={hitSlop}
-          accessibilityRole="button"
-          accessibilityState={{ expanded }}
-          accessibilityLabel={`Stock level ${selected.label}`}
-          style={({ pressed }) => ({
+        <View
+          ref={barRef}
+          collapsable={false}
+          style={{
             flexBasis: '40%',
             flexGrow: 0,
             flexShrink: 0,
             minWidth: '40%',
-            minHeight: 56,
-            paddingVertical: spacing.md,
-            paddingHorizontal: spacing.md,
-            borderRadius: radius.sm,
-            borderWidth: 1,
-            borderColor: selected.color,
-            backgroundColor: pressed ? colors.muted : OPTION_TINT[currentValue],
-            alignItems: 'center',
-            justifyContent: 'center',
-          })}
+          }}
         >
-          <AppText
-            numberOfLines={1}
-            style={{
-              fontSize: typography.body.fontSize,
-              fontWeight: '700',
-              color: OPTION_LABEL[currentValue],
-              textAlign: 'center',
-            }}
+          <Pressable
+            onPress={toggle}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityState={{ expanded }}
+            accessibilityLabel={`Stock level ${selected.label}`}
+            style={({ pressed }) => ({
+              minHeight: 56,
+              paddingVertical: spacing.md,
+              paddingHorizontal: spacing.md,
+              borderRadius: radius.sm,
+              borderWidth: 1,
+              borderColor: selected.color,
+              backgroundColor: pressed ? colors.muted : OPTION_TINT[currentValue],
+              alignItems: 'center',
+              justifyContent: 'center',
+            })}
           >
-            {selected.label}
-          </AppText>
-        </Pressable>
+            <AppText
+              numberOfLines={1}
+              style={{
+                fontSize: typography.body.fontSize,
+                fontWeight: '700',
+                color: OPTION_LABEL[currentValue],
+                textAlign: 'center',
+              }}
+            >
+              {selected.label}
+            </AppText>
+          </Pressable>
+        </View>
+      </View>
 
-        {expanded ? (
+      {/* Own Modal layer — always above Submit Report and list siblings. */}
+      <Modal
+        visible={expanded && menuAnchor != null}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={close}
+      >
+        <View style={{ flex: 1 }}>
+          <Pressable
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            onPress={close}
+            accessibilityLabel="Dismiss stock level menu"
+          />
           <View
+            pointerEvents="box-none"
             style={{
               position: 'absolute',
-              top: '100%',
-              right: 0,
-              width: '52%',
-              minWidth: '52%',
-              marginTop: spacing.xs,
+              top: menuTop,
+              left: Math.max(spacing.sm, menuLeft),
+              width: menuWidth,
               borderWidth: 1,
               borderColor: colors.border,
               borderRadius: radius.md,
               backgroundColor: '#FFFFFF',
               overflow: 'hidden',
-              zIndex: 30,
               ...Platform.select({
-                android: { elevation: 12 },
+                android: { elevation: 24 },
                 ios: {
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
@@ -232,8 +283,8 @@ export const StockProductRow = memo(function StockProductRow({
               );
             })}
           </View>
-        ) : null}
-      </View>
+        </View>
+      </Modal>
     </View>
   );
 });

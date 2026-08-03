@@ -8,6 +8,13 @@ export default function SupervisorTabsLayout() {
   const { isEnabled, isLoaded } = useProjectComponents();
 
   const show = (code: string) => !isLoaded || isEnabled(code);
+  const showMore =
+    !isLoaded ||
+    isEnabled('CRM-0121') ||
+    isEnabled('CRM-0120') ||
+    isEnabled('CRM-0122') ||
+    isEnabled('CRM-0119') ||
+    isEnabled('CRM-0130');
 
   return (
     <Tabs screenOptions={getTabScreenOptions(insets.bottom)}>
@@ -28,11 +35,11 @@ export default function SupervisorTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="map"
+        name="more"
         options={{
-          title: 'Map',
-          href: show('CRM-0125') ? undefined : null,
-          tabBarIcon: tabBarIcon('location'),
+          title: 'More',
+          href: showMore ? undefined : null,
+          tabBarIcon: tabBarIcon('ellipsis-horizontal'),
         }}
       />
       <Tabs.Screen

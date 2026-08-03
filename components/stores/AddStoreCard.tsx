@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
-import { AppText, Button, Card, IconChip } from '@/components/ui';
+import { AppText, Button, Card, IconChip, appAlert } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -129,7 +129,7 @@ export function AddStoreCard({ onStoreAdded, onSuccess }: AddStoreCardProps) {
           county: addedCounty,
         });
       } else {
-        Alert.alert('Store added', `${addedName} was added successfully.`);
+        appAlert('Store added', `${addedName} was added successfully.`);
       }
 
       setStoreName('');

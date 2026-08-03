@@ -12,6 +12,7 @@ const ACTIONS: { code: string; label: string; path: `/(agent)/${string}`; icon: 
   { code: 'CRM-0034', label: 'Record Sale', path: '/(agent)/record-sale', icon: 'cart' },
   { code: 'CRM-0034G', label: 'Give Products', path: '/(agent)/give-products', icon: 'gift' },
   { code: 'CRM-0096', label: 'Log Interaction', path: '/(agent)/log-interaction', icon: 'chatbox' },
+  { code: 'CRM-0030', label: 'Engagement', path: '/(agent)/engagement', icon: 'flash' },
 ];
 
 export function QuickActions() {

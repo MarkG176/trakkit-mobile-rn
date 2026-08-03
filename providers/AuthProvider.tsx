@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { workspaceService } from '@/services/workspaceService';
+import { unregisterCurrentPushToken } from '@/services/pushNotifications';
 import { signInWithGoogleOAuth } from '@/utils/oauth';
 
 interface AuthContextType {
@@ -67,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Must run while JWT is still valid (RLS: agent_id = auth.uid()).
+    await unregisterCurrentPushToken();
     const { error } = await supabase.auth.signOut();
     return { error: error as Error | null };
   };

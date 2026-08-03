@@ -4,6 +4,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { TopBar } from '@/components/dashboard/TopBar';
 import { ComponentGate } from '@/components/ComponentGate';
 import { ContentBetweenChrome } from '@/components/layout/ContentBetweenChrome';
+import { AppTourHost } from '@/components/tour/AppTourHost';
 import { LoadingSpinner } from '@/components/ui';
 import { colors } from '@/theme';
 
@@ -57,20 +58,22 @@ export default function AgentLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="profile" />
           <Stack.Screen name="activity" />
+          <Stack.Screen name="activity-detail" />
           <Stack.Screen name="settings" />
-          <Stack.Screen name="surveys" />
           <Stack.Screen name="support-ticket" />
           <Stack.Screen name="record-sale" />
           <Stack.Screen name="give-products" />
           <Stack.Screen name="log-interaction" />
+          <Stack.Screen name="engagement" />
           <Stack.Screen name="help-support" />
-          <Stack.Screen name="manage-agents" />
           <Stack.Screen name="interaction-history" />
           <Stack.Screen name="sales-activities" />
           <Stack.Screen name="giveaway-activities" />
           <Stack.Screen name="survey-activities" />
+          <Stack.Screen name="documentation" />
         </Stack>
       </ContentBetweenChrome>
+      <AppTourHost />
     </View>
   );
 }

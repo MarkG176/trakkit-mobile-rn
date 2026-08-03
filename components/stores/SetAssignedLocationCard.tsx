@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconChip, LoadingSpinner } from '@/components/ui';
+import { AppText, Button, Card, IconChip, LoadingSpinner, appAlert } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
@@ -82,7 +82,7 @@ export function SetAssignedLocationCard({ stores, storesLoading }: SetAssignedLo
         timestamp: new Date().toISOString(),
       });
 
-      Alert.alert('Location set', `Your assigned location is ${selectedStore.store_name}.`);
+      appAlert('Location set', `Your assigned location is ${selectedStore.store_name}.`);
       setSelectedStoreId(null);
       setSearchText('');
     } catch (error) {

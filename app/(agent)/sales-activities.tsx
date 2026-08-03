@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
@@ -8,6 +9,7 @@ import { Screen, LoadingSpinner, EmptyMessage, ListItemCard } from '@/components
 export default function SalesActivitiesScreen() {
   const { user } = useAuth();
   const { currentWorkspaceId } = useWorkspace();
+  const router = useRouter();
   const [items, setItems] = useState<
     { id: string; product_name: string | null; created_at: string | null }[]
   >([]);
@@ -48,6 +50,12 @@ export default function SalesActivitiesScreen() {
               key={item.id}
               title={item.product_name ?? 'Sale'}
               subtitle={item.created_at ? new Date(item.created_at).toLocaleString() : undefined}
+              onPress={() =>
+                router.push({
+                  pathname: '/(agent)/activity-detail',
+                  params: { id: item.id, type: 'sale' },
+                })
+              }
             />
           ))
         )}

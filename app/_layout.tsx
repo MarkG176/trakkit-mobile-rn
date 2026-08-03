@@ -8,12 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { WorkspaceProvider } from '@/providers/WorkspaceProvider';
 import { AgentStatusProvider } from '@/providers/AgentStatusProvider';
+import { PushNotificationsProvider } from '@/providers/PushNotificationsProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { AppShell } from '@/components/AppShell';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
-import { LoadingSpinner } from '@/components/ui';
+import { AppAlertHost, LoadingSpinner } from '@/components/ui';
 import { useUserRole } from '@/hooks/useUserRole';
 import { colors } from '@/theme';
 
@@ -74,16 +75,19 @@ export default function RootLayout() {
       <AppShell>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <WorkspaceProvider>
-              <AgentStatusProvider>
-                <BackgroundLocationTracker />
-                <RootFrame>
-                  <AuthGate>
-                    <Slot />
-                  </AuthGate>
-                </RootFrame>
-              </AgentStatusProvider>
-            </WorkspaceProvider>
+            <PushNotificationsProvider>
+              <WorkspaceProvider>
+                <AgentStatusProvider>
+                  <BackgroundLocationTracker />
+                  <RootFrame>
+                    <AuthGate>
+                      <Slot />
+                    </AuthGate>
+                  </RootFrame>
+                  <AppAlertHost />
+                </AgentStatusProvider>
+              </WorkspaceProvider>
+            </PushNotificationsProvider>
           </AuthProvider>
         </QueryClientProvider>
       </AppShell>

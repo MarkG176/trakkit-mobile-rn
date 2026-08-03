@@ -3,7 +3,9 @@ import {
   Animated,
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   TextInput,
   useWindowDimensions,
@@ -13,6 +15,7 @@ import type { TextInput as TextInputRef } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { InventoryItem } from '@/hooks/useInventory';
 import { AppText, Button, EmptyMessage, LoadingSpinner } from '@/components/ui';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { formatCurrencySimple } from '@/utils/currency';
 import { colors, hitSlop, radius, spacing } from '@/theme';
 import { getLineTotal, hasDeal, type SaleLine } from './types';
@@ -308,6 +311,7 @@ export function ProductPickerSheet({
   const overlayAnim = useRef(new Animated.Value(0)).current;
   const panelAnim = useRef(new Animated.Value(0)).current;
   const closingRef = useRef(false);
+  const keyboardHeight = useKeyboardHeight(mounted);
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
 
   const dismissKeyboard = () => {
@@ -395,6 +399,7 @@ export function ProductPickerSheet({
   if (!mounted) return null;
 
   const maxPanelH = Math.min(windowH * 0.72, 560);
+  const androidLift = Platform.OS === 'android' ? keyboardHeight : 0;
 
   return (
     <Modal
@@ -404,7 +409,10 @@ export function ProductPickerSheet({
       statusBarTranslucent
       onRequestClose={close}
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Animated.View
           pointerEvents="none"
           style={{
@@ -429,6 +437,7 @@ export function ProductPickerSheet({
             width: '92%',
             maxWidth: 448,
             height: maxPanelH,
+            marginBottom: androidLift > 0 ? androidLift * 0.5 : 0,
             opacity: panelAnim,
             transform: [{ scale: panelScale }, { translateY: panelTranslateY }],
             zIndex: 1,
@@ -593,7 +602,7 @@ export function ProductPickerSheet({
             </View>
           </Pressable>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
