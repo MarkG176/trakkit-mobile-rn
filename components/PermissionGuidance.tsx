@@ -18,7 +18,7 @@ const MESSAGES = {
   },
   'background-location': {
     title: 'Background location needed',
-    body: 'Allow background location so supervisors can see your position during active shifts.',
+    body: 'TraKKiT collects location data to enable shift tracking and supervisor visibility even when the app is closed or not in use. Allow background location so supervisors can see your position during active shifts.',
   },
 };
 

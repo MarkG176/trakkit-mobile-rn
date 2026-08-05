@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { useProjectComponents } from '@/hooks/useProjectComponents';
@@ -8,6 +8,10 @@ import {
   buildAppTourToolItems,
   type AppTourItem,
 } from '@/utils/appTourContent';
+import {
+  isBackgroundLocationDisclosureBlocking,
+  subscribeBackgroundLocationDisclosureGate,
+} from '@/utils/backgroundLocationDisclosureGate';
 
 type OpenHandler = (opts?: { force?: boolean }) => void;
 
@@ -37,6 +41,11 @@ export function useAppTour(): AppTourState {
   const { user } = useAuth();
   const { currentWorkspaceId, isInitialized } = useWorkspace();
   const { isEnabled, isLoaded } = useProjectComponents();
+  const disclosureBlocking = useSyncExternalStore(
+    subscribeBackgroundLocationDisclosureGate,
+    isBackgroundLocationDisclosureBlocking,
+    () => false,
+  );
 
   const [visible, setVisible] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -78,6 +87,7 @@ export function useAppTour(): AppTourState {
 
   useEffect(() => {
     if (!user?.id || !currentWorkspaceId || !isInitialized || !isLoaded) return;
+    if (disclosureBlocking) return;
 
     const key = `${user.id}:${currentWorkspaceId}`;
     if (lastAutoKeyRef.current === key) return;
@@ -104,7 +114,7 @@ export function useAppTour(): AppTourState {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, currentWorkspaceId, isInitialized, isLoaded]);
+  }, [user?.id, currentWorkspaceId, isInitialized, isLoaded, disclosureBlocking]);
 
   const goNext = useCallback(() => {
     setStepIndex((prev) => Math.min(prev + 1, stepCount - 1));

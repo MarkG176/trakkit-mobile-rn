@@ -3,7 +3,11 @@ import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentGate } from '@/components/ComponentGate';
 import { useAgentStatus } from '@/providers/AgentStatusProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { useWorkspace } from '@/providers/WorkspaceProvider';
 import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
+import { openBackgroundLocationDisclosure } from '@/hooks/useBackgroundLocationDisclosure';
+import { hasAcknowledgedBackgroundLocationDisclosure } from '@/services/backgroundLocationDisclosureStorage';
 import { PermissionGuidance } from '@/components/PermissionGuidance';
 import { Screen, Button, Card, AppText, IconChip } from '@/components/ui';
 import { colors, spacing } from '@/theme';
@@ -11,11 +15,23 @@ import Constants from 'expo-constants';
 
 export default function SettingsScreen() {
   const { isCheckedIn } = useAgentStatus();
+  const { user } = useAuth();
+  const { currentWorkspaceId } = useWorkspace();
   const [bgDenied, setBgDenied] = useState(false);
   const version = Constants.expoConfig?.version ?? '1.0.0';
 
   const toggleBackground = async () => {
     if (isCheckedIn) {
+      if (user?.id && currentWorkspaceId) {
+        const disclosed = await hasAcknowledgedBackgroundLocationDisclosure(
+          user.id,
+          currentWorkspaceId,
+        );
+        if (!disclosed) {
+          openBackgroundLocationDisclosure({ force: true });
+          return;
+        }
+      }
       const ok = await startBackgroundTracking();
       if (!ok) setBgDenied(true);
     } else {

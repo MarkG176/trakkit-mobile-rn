@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "com.trakkit.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -93,7 +94,18 @@
       "expo-secure-store",
       "expo-status-bar",
       "expo-web-browser",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-keepattributes SourceFile,LineNumberTable\n-renamesourcefileattribute SourceFile"
+          }
+        }
+      ],
+      "./plugins/withAndroidR8.js"
     ],
     "experiments": {
       "typedRoutes": true

@@ -56,57 +56,62 @@ export async function registerForPushNotifications(userId: string): Promise<stri
     return null;
   }
 
-  await ensureAndroidChannel();
+  try {
+    await ensureAndroidChannel();
 
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-  if (finalStatus !== 'granted') {
-    console.warn('[push] Notification permission not granted');
-    return null;
-  }
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      console.warn('[push] Notification permission not granted');
+      return null;
+    }
 
-  const projectId = getEasProjectId();
-  if (!projectId) {
-    console.warn(
-      '[push] Missing EAS projectId. Set EXPO_PUBLIC_EAS_PROJECT_ID or app.json extra.eas.projectId (run eas init).',
+    const projectId = getEasProjectId();
+    if (!projectId) {
+      console.warn(
+        '[push] Missing EAS projectId. Set EXPO_PUBLIC_EAS_PROJECT_ID or app.json extra.eas.projectId (run eas init).',
+      );
+      return null;
+    }
+
+    const tokenResult = await Notifications.getExpoPushTokenAsync({ projectId });
+    const token = tokenResult.data;
+    if (!token) return null;
+
+    const deviceInfo = {
+      brand: Device.brand,
+      modelName: Device.modelName,
+      osName: Device.osName,
+      osVersion: Device.osVersion,
+      deviceName: Device.deviceName,
+    };
+
+    const { error } = await supabase.from('device_push_tokens').upsert(
+      {
+        agent_id: userId,
+        expo_push_token: token,
+        platform: Platform.OS,
+        device_info: deviceInfo,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'agent_id,expo_push_token' },
     );
+
+    if (error) {
+      console.warn('[push] Failed to upsert device token', error);
+      return null;
+    }
+
+    currentPushToken = token;
+    return token;
+  } catch (error) {
+    console.warn('[push] Failed to register for push notifications', error);
     return null;
   }
-
-  const tokenResult = await Notifications.getExpoPushTokenAsync({ projectId });
-  const token = tokenResult.data;
-  if (!token) return null;
-
-  const deviceInfo = {
-    brand: Device.brand,
-    modelName: Device.modelName,
-    osName: Device.osName,
-    osVersion: Device.osVersion,
-    deviceName: Device.deviceName,
-  };
-
-  const { error } = await supabase.from('device_push_tokens').upsert(
-    {
-      agent_id: userId,
-      expo_push_token: token,
-      platform: Platform.OS,
-      device_info: deviceInfo,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'agent_id,expo_push_token' },
-  );
-
-  if (error) {
-    console.error('[push] Failed to upsert device token', error);
-    return null;
-  }
-
-  currentPushToken = token;
-  return token;
 }
 
 export async function unregisterPushToken(token: string | null | undefined): Promise<void> {
