@@ -1,7 +1,6 @@
 component,component_path,pages,page_count
 AppShell,components/AppShell.tsx,app/_layout.tsx,1
 RecordAttendanceForm,components/attendance/RecordAttendanceForm.tsx,app/(agent)/(tabs)/index.tsx,1
-BackgroundLocationTracker,components/BackgroundLocationTracker.tsx,app/_layout.tsx,1
 CameraCapture,components/CameraCapture.tsx,(not imported by any page),0
 ComponentGate,components/ComponentGate.tsx,app/(agent)/(tabs)/index.tsx; app/(agent)/(tabs)/inventory.tsx; app/(agent)/(tabs)/more.tsx; app/(agent)/(tabs)/reports.tsx; app/(agent)/(tabs)/routes.tsx; app/(agent)/_layout.tsx; app/(agent)/activity.tsx; app/(agent)/give-products.tsx; app/(agent)/giveaway-activities.tsx; app/(agent)/help-support.tsx; app/(agent)/interaction-history.tsx; app/(agent)/log-interaction.tsx; app/(agent)/manage-agents.tsx; app/(agent)/profile.tsx; app/(agent)/record-sale.tsx; app/(agent)/sales-activities.tsx; app/(agent)/settings.tsx; app/(agent)/support-ticket.tsx; app/(agent)/survey-activities.tsx; app/(agent)/surveys.tsx; app/(supervisor)/(tabs)/inbox.tsx; app/(supervisor)/(tabs)/index.tsx; app/(supervisor)/(tabs)/map.tsx; app/(supervisor)/(tabs)/stats.tsx; app/(supervisor)/(tabs)/users.tsx; app/(supervisor)/_layout.tsx; app/(supervisor)/feedback.tsx; app/(supervisor)/gallery.tsx; app/(supervisor)/rankings.tsx; app/(supervisor)/sales.tsx,30
 DashboardMessagesCard,components/dashboard/DashboardMessagesCard.tsx,app/(agent)/(tabs)/index.tsx,1

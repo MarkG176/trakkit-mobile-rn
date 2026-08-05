@@ -10,13 +10,6 @@ export async function requestForegroundLocationPermission(): Promise<boolean> {
   return status === 'granted';
 }
 
-export async function requestBackgroundLocationPermission(): Promise<boolean> {
-  const foreground = await requestForegroundLocationPermission();
-  if (!foreground) return false;
-  const { status } = await Location.requestBackgroundPermissionsAsync();
-  return status === 'granted';
-}
-
 export async function getCurrentLocation(): Promise<CurrentLocation> {
   const granted = await requestForegroundLocationPermission();
   if (!granted) throw new Error('Location permission denied');

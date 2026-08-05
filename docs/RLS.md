@@ -19,5 +19,4 @@ Development can proceed with test accounts against the existing backend. The ano
 After RLS is fixed:
 
 1. Add iOS bundle config in `app.json`
-2. Test background location permission flow on iOS (differs from Android)
-3. Configure EAS Build profiles for App Store / Play Store
+2. Configure EAS Build profiles for App Store / Play Store

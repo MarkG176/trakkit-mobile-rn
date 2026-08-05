@@ -44,7 +44,7 @@ git push -u origin main
 - [ ] Fix Supabase RLS policies (see `docs/RLS.md`)
 - [ ] Add Google Maps API key in `app.json` for supervisor map
 - [ ] Register `trakkit://auth/callback` in Supabase Auth redirect URLs
-- [ ] Test on physical Android device (GPS, camera, background location)
+- [ ] Test on physical Android device (GPS, camera)
 
 ## Sync with PWA
 

@@ -76,7 +76,6 @@ export const MOBILE_COMPONENTS: MobileComponent[] = [
   { code: 'CRM-0002', name: 'Supervisor Bottom Nav', path: 'supervisor-bottom-nav', group: 'layout', description: 'Bottom tab bar for supervisor mode.' },
   { code: 'CRM-0003', name: 'Status Bar', path: 'status-bar', group: 'layout', description: 'In-app status bar (sync, connectivity).' },
   { code: 'CRM-0004', name: 'PWA Install Prompt', path: 'pwa-install', group: 'layout', description: 'PWA install prompt (web only).' },
-  { code: 'CRM-0005', name: 'Background Location Tracker', path: 'background-location', group: 'layout', description: 'Background GPS tracker for agent location.' },
 ];
 
 export const DEFAULT_MOBILE_COMPONENTS: Record<string, boolean> = Object.fromEntries(

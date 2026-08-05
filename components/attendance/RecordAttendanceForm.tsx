@@ -15,7 +15,6 @@ import { useAgentStatus } from '@/providers/AgentStatusProvider';
 import { PermissionGuidance } from '@/components/PermissionGuidance';
 import { getCurrentLocation } from '@/utils/location';
 import { writeWithOfflineQueue } from '@/services/offlineQueue';
-import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
 import { getLastCheckInPhotoUrl, uploadCheckInPhoto } from '@/utils/agentPhotos';
 import { supabase } from '@/lib/supabase';
 import { AppText, Button, Card, appAlert } from '@/components/ui';
@@ -151,12 +150,6 @@ export function RecordAttendanceForm() {
         appAlert('Saved offline', 'Check-in will sync when you reconnect.');
       } else {
         appAlert('Success', wasCheckIn ? 'Checked in!' : 'Checked out!');
-      }
-
-      if (wasCheckIn) {
-        await startBackgroundTracking();
-      } else {
-        await stopBackgroundTracking();
       }
 
       clearPendingCapture();

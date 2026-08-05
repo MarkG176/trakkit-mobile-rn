@@ -1,5 +1,4 @@
 import '../global.css';
-import '@/tasks/backgroundLocation';
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -13,7 +12,6 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { AppShell } from '@/components/AppShell';
 import { queryClient } from '@/lib/queryClient';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
-import { BackgroundLocationTracker } from '@/components/BackgroundLocationTracker';
 import { AppAlertHost, LoadingSpinner } from '@/components/ui';
 import { useUserRole } from '@/hooks/useUserRole';
 import { colors } from '@/theme';
@@ -78,7 +76,6 @@ export default function RootLayout() {
             <PushNotificationsProvider>
               <WorkspaceProvider>
                 <AgentStatusProvider>
-                  <BackgroundLocationTracker />
                   <RootFrame>
                     <AuthGate>
                       <Slot />

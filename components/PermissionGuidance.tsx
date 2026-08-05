@@ -3,7 +3,7 @@ import { AppText, Button, Card } from '@/components/ui';
 import { badge, colors, spacing } from '@/theme';
 
 interface PermissionGuidanceProps {
-  type: 'location' | 'camera' | 'background-location';
+  type: 'location' | 'camera';
   onRetry?: () => void;
 }
 
@@ -15,10 +15,6 @@ const MESSAGES = {
   camera: {
     title: 'Camera access needed',
     body: 'TraKKiT needs camera access to capture attendance selfies and photos.',
-  },
-  'background-location': {
-    title: 'Background location needed',
-    body: 'TraKKiT collects location data to enable shift tracking and supervisor visibility even when the app is closed or not in use. Allow background location so supervisors can see your position during active shifts.',
   },
 };
 

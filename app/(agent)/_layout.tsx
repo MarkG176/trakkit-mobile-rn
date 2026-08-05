@@ -5,7 +5,6 @@ import { TopBar } from '@/components/dashboard/TopBar';
 import { ComponentGate } from '@/components/ComponentGate';
 import { ContentBetweenChrome } from '@/components/layout/ContentBetweenChrome';
 import { AppTourHost } from '@/components/tour/AppTourHost';
-import { BackgroundLocationDisclosureHost } from '@/components/location/BackgroundLocationDisclosureHost';
 import { LoadingSpinner } from '@/components/ui';
 import { colors } from '@/theme';
 
@@ -74,7 +73,6 @@ export default function AgentLayout() {
           <Stack.Screen name="documentation" />
         </Stack>
       </ContentBetweenChrome>
-      <BackgroundLocationDisclosureHost />
       <AppTourHost />
     </View>
   );

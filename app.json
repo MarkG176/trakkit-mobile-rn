@@ -2,7 +2,7 @@
   "expo": {
     "name": "TraKKiT",
     "slug": "trakkit-mobile-rn",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "trakkit",
@@ -14,7 +14,6 @@
       "backgroundColor": "#FFFFFF",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "TraKKiT needs your location to verify check-ins and record field activity.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "TraKKiT tracks your location during active shifts for supervisor visibility.",
         "NSCameraUsageDescription": "TraKKiT needs camera access for attendance selfies and field photos.",
         "NSMicrophoneUsageDescription": "TraKKiT needs microphone access to record interaction audio."
       }
@@ -30,17 +29,13 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
         "RECORD_AUDIO",
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
         "POST_NOTIFICATIONS",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_LOCATION",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
@@ -72,9 +67,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow TraKKiT to use your location during active shifts.",
-          "isAndroidBackgroundLocationEnabled": true,
-          "isAndroidForegroundServiceEnabled": true
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
         }
       ],
       [

@@ -1,80 +1,16 @@
-import { useState } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentGate } from '@/components/ComponentGate';
-import { useAgentStatus } from '@/providers/AgentStatusProvider';
-import { useAuth } from '@/providers/AuthProvider';
-import { useWorkspace } from '@/providers/WorkspaceProvider';
-import { startBackgroundTracking, stopBackgroundTracking } from '@/tasks/backgroundLocation';
-import { openBackgroundLocationDisclosure } from '@/hooks/useBackgroundLocationDisclosure';
-import { hasAcknowledgedBackgroundLocationDisclosure } from '@/services/backgroundLocationDisclosureStorage';
-import { PermissionGuidance } from '@/components/PermissionGuidance';
-import { Screen, Button, Card, AppText, IconChip } from '@/components/ui';
+import { Screen, Card, AppText, IconChip } from '@/components/ui';
 import { colors, spacing } from '@/theme';
 import Constants from 'expo-constants';
 
 export default function SettingsScreen() {
-  const { isCheckedIn } = useAgentStatus();
-  const { user } = useAuth();
-  const { currentWorkspaceId } = useWorkspace();
-  const [bgDenied, setBgDenied] = useState(false);
   const version = Constants.expoConfig?.version ?? '1.0.0';
-
-  const toggleBackground = async () => {
-    if (isCheckedIn) {
-      if (user?.id && currentWorkspaceId) {
-        const disclosed = await hasAcknowledgedBackgroundLocationDisclosure(
-          user.id,
-          currentWorkspaceId,
-        );
-        if (!disclosed) {
-          openBackgroundLocationDisclosure({ force: true });
-          return;
-        }
-      }
-      const ok = await startBackgroundTracking();
-      if (!ok) setBgDenied(true);
-    } else {
-      await stopBackgroundTracking();
-    }
-  };
 
   return (
     <ComponentGate code="CRM-0101">
       <Screen scroll showBack>
-        <AppText
-          style={{
-            fontSize: 12,
-            fontWeight: '700',
-            color: colors.primary,
-            letterSpacing: 0.5,
-            marginBottom: spacing.sm,
-          }}
-        >
-          GENERAL
-        </AppText>
-        <Card style={{ marginBottom: spacing.lg }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
-            <IconChip
-              name="navigate-outline"
-              backgroundColor={colors.primaryLight}
-              color={colors.primary}
-            />
-            <View style={{ flex: 1, flexShrink: 1 }}>
-              <AppText style={{ fontWeight: '600', fontSize: 16 }}>Background location</AppText>
-              <AppText variant="secondary" style={{ marginTop: 4, marginBottom: spacing.md }}>
-                Tracks your position during active shifts for supervisor visibility.
-              </AppText>
-              {bgDenied ? (
-                <PermissionGuidance type="background-location" onRetry={toggleBackground} />
-              ) : null}
-              <Button onPress={toggleBackground}>
-                {isCheckedIn ? 'Enable background tracking' : 'Stop background tracking'}
-              </Button>
-            </View>
-          </View>
-        </Card>
-
         <AppText
           style={{
             fontSize: 12,
