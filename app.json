@@ -21,7 +21,6 @@
     },
     "android": {
       "package": "com.trakkit.mobile",
-      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

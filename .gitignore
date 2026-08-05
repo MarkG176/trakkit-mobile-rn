@@ -34,6 +34,10 @@ yarn-error.*
 .env
 .env*.local
 
+# Firebase client config (provide via EAS file env GOOGLE_SERVICES_JSON)
+google-services.json
+GoogleService-Info.plist
+
 # Firebase / FCM service account private keys (do not commit)
 *-firebase-adminsdk-*.json
 firebase-service-account*.json
